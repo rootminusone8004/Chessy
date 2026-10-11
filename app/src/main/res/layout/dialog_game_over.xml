@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_rounded_card"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- Status Icon -->
+    <ImageView
+        android:id="@+id/ivGameOverIcon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginBottom="12dp"
+        android:contentDescription="Game Result"
+        android:src="@drawable/ic_flag"
+        app:tint="@color/primaryOrange" />
+
+    <TextView
+        android:id="@+id/tvGameOverTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Game Over"
+        android:textColor="@color/primaryOrange"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvGameOverMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:text="Game resigned"
+        android:textColor="@color/textPrimary"
+        android:textSize="16sp" />
+
+    <!-- Primary Action: New Game (Full Width, Large Tap Target) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnGameOverNewGame"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="24dp"
+        android:backgroundTint="@color/primaryOrange"
+        android:text="@string/action_new_game"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:cornerRadius="12dp"
+        app:icon="@drawable/ic_new_game"
+        app:iconGravity="textStart"
+        app:iconTint="@color/white" />
+
+    <!-- Secondary Actions Row: Review Board & Copy PGN -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDismissDialog"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="5dp"
+            android:layout_weight="1"
+            android:text="Review Board"
+            android:textColor="@color/textSecondary"
+            android:textSize="12sp"
+            app:cornerRadius="12dp"
+            app:strokeColor="@color/customSurfaceElevated" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCopyPgn"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="5dp"
+            android:layout_weight="1"
+            android:text="@string/action_copy_pgn"
+            android:textColor="@color/primaryOrange"
+            android:textSize="12sp"
+            app:cornerRadius="12dp"
+            app:icon="@drawable/ic_content_copy"
+            app:iconGravity="textStart"
+            app:iconSize="16dp"
+            app:iconTint="@color/primaryOrange"
+            app:strokeColor="@color/primaryOrange" />
+    </LinearLayout>
+
+</LinearLayout>

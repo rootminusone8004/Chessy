@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_rounded_card"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- Header Drag Bar -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_pill" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Locate Stockfish in Termux"
+        android:textColor="@color/primaryOrange"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Manually specify the engine path or executable name inside Termux. With termux-setup-storage, you can also locate Stockfish in shared phone storage."
+        android:textColor="@color/textSecondary"
+        android:textSize="13sp" />
+
+    <!-- Path Input Field -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilEnginePath"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="Termux Engine Path or Command"
+        app:boxStrokeColor="@color/primaryOrange"
+        app:hintTextColor="@color/primaryOrange">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etEnginePath"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:text="stockfish"
+            android:textColor="@color/textPrimary"
+            android:textSize="13sp" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Quick Preset Chips -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Quick Presets:"
+        android:textColor="@color/textSecondary"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/chipDefaultPath"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="6dp"
+                android:text="stockfish"
+                android:textSize="11sp"
+                app:cornerRadius="18dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/chipUsrBinPath"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="6dp"
+                android:text="usr/bin/stockfish"
+                android:textSize="11sp"
+                app:cornerRadius="18dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/chipHomePath"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="6dp"
+                android:text="~/stockfish"
+                android:textSize="11sp"
+                app:cornerRadius="18dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/chipSharedStoragePath"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="~/storage/shared/stockfish"
+                android:textSize="11sp"
+                app:cornerRadius="18dp" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Storage Bridge Card -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_rounded_card"
+        android:backgroundTint="@color/customSurfaceDarker"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Phone Storage Access (termux-setup-storage)"
+            android:textColor="@color/primaryOrangeLight"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Run this in Termux to link phone storage and copy stockfish:"
+            android:textColor="@color/textSecondary"
+            android:textSize="12sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvStorageCmd"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="monospace"
+                android:text="termux-setup-storage &amp;&amp; cp $(which stockfish) ~/storage/shared/"
+                android:textColor="@color/white"
+                android:textSize="11sp" />
+
+            <ImageButton
+                android:id="@+id/btnCopyStorageCmd"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/termux_copy_command"
+                android:src="@drawable/ic_content_copy"
+                app:tint="@color/textSecondary" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPickFileFromPhone"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Pick Engine File from Phone Storage"
+            android:textColor="@color/primaryOrange"
+            android:textSize="12sp"
+            app:cornerRadius="10dp"
+            app:strokeColor="@color/primaryOrange" />
+    </LinearLayout>
+
+    <!-- Permission Status Row -->
+    <LinearLayout
+        android:id="@+id/layoutSheetPermission"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvSheetPermissionStatus"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Permission: Checking…"
+            android:textColor="@color/textSecondary"
+            android:textSize="12sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSheetGrantPermission"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:text="Grant Permission"
+            android:textColor="@color/primaryOrangeLight"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <!-- Live Diagnostic Output View -->
+    <TextView
+        android:id="@+id/tvDiagnosticLog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_rounded_card"
+        android:backgroundTint="@color/black"
+        android:fontFamily="monospace"
+        android:padding="10dp"
+        android:text="Diagnostics: Ready to test"
+        android:textColor="@color/textSecondary"
+        android:textSize="11sp"
+        android:visibility="gone" />
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTestDiagnostic"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="Test Engine"
+            android:textColor="@color/primaryOrange"
+            app:cornerRadius="12dp"
+            app:strokeColor="@color/primaryOrange" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSaveAndConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="@color/primaryOrange"
+            android:text="Save &amp; Play"
+            android:textColor="@color/white"
+            app:cornerRadius="12dp" />
+    </LinearLayout>
+
+</LinearLayout>

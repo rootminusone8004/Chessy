@@ -1,0 +1,55 @@
+<resources>
+    <string name="app_name">Chessy</string>
+    <string name="title_engine_vs_player">Player vs Engine</string>
+    <string name="status_your_turn">Your Turn</string>
+    <string name="status_engine_thinking">Stockfish is thinking…</string>
+    <string name="status_check">Check!</string>
+    <string name="status_checkmate_win">Checkmate! You won! 🎉</string>
+    <string name="status_checkmate_loss">Checkmate! Stockfish won.</string>
+    <string name="status_stalemate">Draw by Stalemate</string>
+    <string name="status_draw_insufficient">Draw by Insufficient Material</string>
+    <string name="status_draw_50_moves">Draw by 50-move Rule</string>
+    <string name="status_resigned">Game resigned</string>
+
+    <!-- Actions -->
+    <string name="action_new_game">New Game</string>
+    <string name="action_undo">Undo</string>
+    <string name="action_flip_board">Flip Board</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_termux_setup">Termux Setup</string>
+    <string name="action_copy_pgn">Copy PGN</string>
+    <string name="action_copy_fen">Copy FEN</string>
+    <string name="action_resign">Resign</string>
+
+    <!-- Termux & Engine -->
+    <string name="termux_engine_title">Stockfish via Termux</string>
+    <string name="termux_status_connected">Termux Stockfish Active</string>
+    <string name="termux_status_fallback">Waiting for Termux Stockfish…</string>
+    <string name="termux_setup_desc">Chessy integrates with the official Stockfish engine installed in Termux on your Android device.</string>
+    <string name="termux_step1">1. Install Termux app from F-Droid or GitHub.</string>
+    <string name="termux_step2">2. In Termux, run: pkg update &amp;&amp; pkg install stockfish</string>
+    <string name="termux_step3">3. Enable external app execution in ~/.termux/termux.properties:\nallow-external-apps = true</string>
+    <string name="termux_test_connection">Test Termux Connection</string>
+    <string name="termux_copy_command">Copy Command</string>
+    <string name="termux_open_app">Open Termux</string>
+
+    <!-- Game Settings -->
+    <string name="settings_title">Game Settings</string>
+    <string name="settings_player_side">Player Color</string>
+    <string name="settings_side_white">White (Play First)</string>
+    <string name="settings_side_black">Black (Engine First)</string>
+    <string name="settings_engine_difficulty">Stockfish Depth / Level</string>
+    <string name="settings_depth_label">Search Depth: %1$d</string>
+    <string name="settings_engine_mode">Engine Communication</string>
+    <string name="settings_mode_run_command">Termux RUN_COMMAND Intent</string>
+    <string name="settings_mode_socket">Termux TCP Socket (127.0.0.1)</string>
+    <string name="settings_socket_port">TCP Port (Default: 2222)</string>
+    <string name="settings_haptic_feedback">Haptic Feedback</string>
+
+    <!-- Promotion -->
+    <string name="promotion_title">Promote Pawn</string>
+    <string name="piece_queen">Queen</string>
+    <string name="piece_rook">Rook</string>
+    <string name="piece_bishop">Bishop</string>
+    <string name="piece_knight">Knight</string>
+</resources>

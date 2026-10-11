@@ -1,0 +1,1 @@
+Chessy is a native Kotlin Android chess app built strictly for player vs engine matches. Connects to Stockfish installed via Termux with default Lichess brown board and cburnett pieces.

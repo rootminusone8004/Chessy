@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_rounded_card"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Header Drag Bar -->
+        <View
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="12dp"
+            android:background="@drawable/bg_pill" />
+
+        <!-- Title and Close -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvEditorTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Create Custom Gambit"
+                    android:textColor="@color/primaryOrange"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvEditorSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="Define custom lines for Stockfish to play"
+                    android:textColor="@color/textSecondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btnCloseEditor"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Close"
+                android:src="@drawable/ic_undo"
+                app:tint="@color/textSecondary" />
+        </LinearLayout>
+
+        <!-- Gambit Name Input -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:boxBackgroundMode="filled"
+            app:boxBackgroundColor="@color/customSurfaceDarker"
+            app:boxStrokeColor="@color/primaryOrange"
+            app:hintTextColor="@color/primaryOrange">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etGambitName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Gambit / Opening Name (e.g. Scotch Gambit)"
+                android:inputType="textCapWords"
+                android:maxLines="1"
+                android:textColor="@color/white"
+                android:textSize="14sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Target Side Selection (Stockfish as White or Black) -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Who plays this gambit?"
+            android:textColor="@color/textSecondary"
+            android:textSize="12sp" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupTargetColor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipColorWhite"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="Stockfish plays as White"
+                android:textColor="@color/textPrimary"
+                app:chipBackgroundColor="@color/customSurfaceElevated" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipColorBlack"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Stockfish plays as Black"
+                android:textColor="@color/textPrimary"
+                app:chipBackgroundColor="@color/customSurfaceElevated" />
+
+        </com.google.android.material.chip.ChipGroup>
+
+        <!-- Optional Description -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            app:boxBackgroundMode="filled"
+            app:boxBackgroundColor="@color/customSurfaceDarker"
+            app:boxStrokeColor="@color/primaryOrange"
+            app:hintTextColor="@color/primaryOrange">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etGambitDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Notes / Description (Optional)"
+                android:inputType="textCapSentences"
+                android:maxLines="2"
+                android:textColor="@color/white"
+                android:textSize="13sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Instructions Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_rounded_card"
+            android:backgroundTint="@color/customSurfaceElevated"
+            android:orientation="vertical"
+            android:padding="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="• Line 1: Base moves (e.g. 1. e4 e5 2. Nf3 Nc6 3. d4 exd4 4. Bc4)"
+                android:textColor="@color/primaryOrangeLight"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="• Indent lines to branch variations without repeating moves:"
+                android:textColor="@color/textSecondary"
+                android:textSize="11sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="monospace"
+                android:text="   Be7 5. c3 dxc3 6. Qd5 Nh6 7. Bxh6\n      gxh6 8.Qf7#\n      0-0 8. Bxg7 Kxg7 9. Nxc3"
+                android:textColor="@color/lichess_last_move_light"
+                android:textSize="10sp" />
+        </LinearLayout>
+
+        <!-- Text Editor Area -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:boxBackgroundMode="filled"
+            app:boxBackgroundColor="@color/customSurfaceDarker"
+            app:boxStrokeColor="@color/primaryOrange"
+            app:hintTextColor="@color/primaryOrange">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etVariationFileContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="monospace"
+                android:gravity="top|start"
+                android:hint="Opening Move Paths &amp; Variations"
+                android:inputType="textMultiLine|textNoSuggestions"
+                android:minLines="5"
+                android:maxLines="12"
+                android:padding="10dp"
+                android:scrollbars="vertical"
+                android:textColor="@color/white"
+                android:textSize="12sp" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Validation Status Display -->
+        <TextView
+            android:id="@+id/tvValidationStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_rounded_card"
+            android:backgroundTint="@color/customSurfaceDarker"
+            android:fontFamily="monospace"
+            android:padding="8dp"
+            android:text="Validating paths…"
+            android:textColor="@color/primaryOrangeLight"
+            android:textSize="11sp" />
+
+        <!-- File Action Buttons (Load / Export / Insert Example) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLoadFile"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="3dp"
+                android:layout_weight="1"
+                android:text="Load File"
+                android:textColor="@color/primaryOrangeLight"
+                android:textSize="10sp"
+                app:cornerRadius="10dp"
+                app:strokeColor="@color/primaryOrangeLight" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExportFile"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="3dp"
+                android:layout_marginEnd="3dp"
+                android:layout_weight="1"
+                android:text="Export"
+                android:textColor="@color/textSecondary"
+                android:textSize="10sp"
+                app:cornerRadius="10dp"
+                app:strokeColor="@color/customSurfaceElevated" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnInsertExample"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="3dp"
+                android:layout_weight="1"
+                android:text="Example"
+                android:textColor="@color/textSecondary"
+                android:textSize="10sp"
+                app:cornerRadius="10dp"
+                app:strokeColor="@color/customSurfaceElevated" />
+        </LinearLayout>
+
+        <!-- Save Button and Optional Delete Button -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDeleteGambit"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="46dp"
+                android:layout_marginEnd="8dp"
+                android:text="Delete"
+                android:textColor="@color/status_red"
+                android:textSize="12sp"
+                android:visibility="gone"
+                app:cornerRadius="12dp"
+                app:strokeColor="@color/status_red" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSaveAndApply"
+                android:layout_width="0dp"
+                android:layout_height="46dp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/primaryOrange"
+                android:text="Save Gambit"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:cornerRadius="12dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

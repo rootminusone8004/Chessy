@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Termux RUN_COMMAND permission -->
+    <uses-permission android:name="com.termux.permission.RUN_COMMAND" />
+    <!-- Localhost socket connection for Termux TCP bridge -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Move feedback -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Storage access for manually locating engine via termux-setup-storage -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+
+    <!-- Package visibility for Termux on Android 11+ -->
+    <queries>
+        <package android:name="com.termux" />
+        <intent>
+            <action android:name="com.termux.RUN_COMMAND" />
+        </intent>
+    </queries>
+
+    <application
+        android:name=".ChessyApp"
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Chessy">
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustNothing">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <receiver
+            android:name=".engine.TermuxResultReceiver"
+            android:exported="true" />
+
+    </application>
+
+</manifest>

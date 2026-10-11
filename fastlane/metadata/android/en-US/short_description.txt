@@ -1,0 +1,1 @@
+Native Android chess app powered by Stockfish in Termux with Lichess styling.

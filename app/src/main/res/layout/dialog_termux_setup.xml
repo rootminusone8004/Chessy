@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_rounded_card"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- Header Drag Bar -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_pill" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/termux_engine_title"
+        android:textColor="@color/primaryOrange"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <!-- Status Chip -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_pill"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="6dp">
+
+        <View
+            android:id="@+id/vTermuxStatusDot"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:background="@drawable/bg_circle_icon" />
+
+        <TextView
+            android:id="@+id/tvTermuxStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Checking Termux…"
+            android:textColor="@color/textPrimary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:text="Chessy connects directly to Stockfish via a localhost socket bridge (127.0.0.1:2222) running in Termux. Zero Android permissions required."
+        android:textColor="@color/textSecondary"
+        android:textSize="13sp" />
+
+    <!-- Step 1: Install Stockfish & socat -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Step 1: Install Stockfish &amp; socat in Termux (Run Once)"
+        android:textColor="@color/textPrimary"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_rounded_card"
+        android:backgroundTint="@color/customSurfaceDarker"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tvInstallCommand"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="monospace"
+            android:text="pkg install -y stockfish socat"
+            android:textColor="@color/primaryOrangeLight"
+            android:textSize="11sp" />
+
+        <ImageButton
+            android:id="@+id/btnCopyInstallCommand"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/termux_copy_command"
+            android:src="@drawable/ic_content_copy"
+            app:tint="@color/textSecondary" />
+    </LinearLayout>
+
+    <!-- Step 2: Start Localhost Bridge -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Step 2: Start Stockfish Bridge (Keep Termux Running)"
+        android:textColor="@color/primaryOrangeLight"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_rounded_card"
+        android:backgroundTint="@color/customSurfaceDarker"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tvSocketCommand"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="monospace"
+            android:text="socat TCP-LISTEN:2222,reuseaddr,fork EXEC:stockfish"
+            android:textColor="@color/white"
+            android:textSize="11sp" />
+
+        <ImageButton
+            android:id="@+id/btnCopySocketCommand"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/termux_copy_command"
+            android:src="@drawable/ic_content_copy"
+            app:tint="@color/primaryOrange" />
+    </LinearLayout>
+
+    <!-- Step 3: Link Phone Storage (Optional) -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Step 3: Setup Storage Access (Optional)"
+        android:textColor="@color/textPrimary"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_rounded_card"
+        android:backgroundTint="@color/customSurfaceDarker"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tvSetupStorageCommand"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="monospace"
+            android:text="termux-setup-storage &amp;&amp; cp $(which stockfish) ~/storage/shared/"
+            android:textColor="@color/textSecondary"
+            android:textSize="11sp" />
+
+        <ImageButton
+            android:id="@+id/btnCopySetupStorageCommand"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/termux_copy_command"
+            android:src="@drawable/ic_content_copy"
+            app:tint="@color/textSecondary" />
+    </LinearLayout>
+
+    <!-- Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOpenTermux"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/termux_open_app"
+            android:textColor="@color/primaryOrange"
+            app:cornerRadius="12dp"
+            app:strokeColor="@color/primaryOrange" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCloseTermuxDialog"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:backgroundTint="@color/primaryOrange"
+            android:text="Done"
+            android:textColor="@color/white"
+            app:cornerRadius="12dp" />
+    </LinearLayout>
+
+</LinearLayout>
