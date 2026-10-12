@@ -413,9 +413,6 @@ class MainActivity : AppCompatActivity() {
             },
             onNewGame = {
                 showChooseSideDialog()
-            },
-            onReviewBoard = {
-                // Dialog dismissed; user can review board
             }
         ).also { it.show() }
     }

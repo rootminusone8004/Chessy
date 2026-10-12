@@ -53,43 +53,21 @@
         app:iconGravity="textStart"
         app:iconTint="@color/white" />
 
-    <!-- Secondary Actions Row: Review Board & Copy PGN -->
-    <LinearLayout
+    <!-- Secondary Action: Copy PGN -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCopyPgn"
+        style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="46dp"
         android:layout_marginTop="10dp"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnDismissDialog"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="44dp"
-            android:layout_marginEnd="5dp"
-            android:layout_weight="1"
-            android:text="Review Board"
-            android:textColor="@color/textSecondary"
-            android:textSize="12sp"
-            app:cornerRadius="12dp"
-            app:strokeColor="@color/customSurfaceElevated" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCopyPgn"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="44dp"
-            android:layout_marginStart="5dp"
-            android:layout_weight="1"
-            android:text="@string/action_copy_pgn"
-            android:textColor="@color/primaryOrange"
-            android:textSize="12sp"
-            app:cornerRadius="12dp"
-            app:icon="@drawable/ic_content_copy"
-            app:iconGravity="textStart"
-            app:iconSize="16dp"
-            app:iconTint="@color/primaryOrange"
-            app:strokeColor="@color/primaryOrange" />
-    </LinearLayout>
+        android:text="@string/action_copy_pgn"
+        android:textColor="@color/primaryOrange"
+        android:textSize="13sp"
+        app:cornerRadius="12dp"
+        app:icon="@drawable/ic_content_copy"
+        app:iconGravity="textStart"
+        app:iconSize="16dp"
+        app:iconTint="@color/primaryOrange"
+        app:strokeColor="@color/primaryOrange" />
 
 </LinearLayout>

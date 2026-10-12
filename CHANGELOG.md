@@ -2,6 +2,28 @@
 
 All notable changes to the **Chessy** project will be documented in this file.
 
+## [1.0.1] - 2026-10-13
+
+### Changed
+- **Game Over Dialog Polish**:
+  - Removed the placeholder "Review Board" button from the Game Over dialog.
+  - Redesigned action layout with a primary "New Game" button and a clean, full-width outlined "Copy PGN" button with instant visual feedback.
+- **King-in-Check Highlight**:
+  - Replaced subtle red check highlight with vivid violet (`#8E24AA`, alpha 230) for clear visual contrast on both light and dark squares.
+- **Engine & Gambit Status Color Indicators**:
+  - Dynamic board status coloring: Blue status background while playing predefined gambit moves from the opening list; automatically switches to Green when Stockfish takes over and begins calculating moves.
+- **Performance & ANR Fixes**:
+  - Moved socket engine communication and intensive move generation off the main thread to completely eliminate "App isn't responding" (ANR) warnings.
+- **UI Streamlining**:
+  - Silenced startup toast notifications ("Stockfish started as...") for a clean, distraction-free match start.
+- **APK Size Optimization**:
+  - Enabled R8 resource shrinking, ProGuard optimizations, and trimmed unused resources, reducing release APK size to ~1.6 MB.
+- **Automated CI/CD Pipeline**:
+  - Added GitHub Actions release workflow (`.github/workflows/release.yml`) with automated unit tests, signed APK build, artifact upload, and GitHub Releases publication.
+  - Added build summary table generator and automated changelog release notes extractor.
+- **Version Bump**:
+  - Bumped `versionCode` to `2` and `versionName` to `1.0.1` for seamless in-place app updates.
+
 ## [1.0.0] - 2026-10-10
 
 ### Added

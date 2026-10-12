@@ -12,8 +12,7 @@ class GameOverDialog(
     context: Context,
     private val message: String,
     private val onCopyPgn: () -> Unit,
-    private val onNewGame: () -> Unit,
-    private val onReviewBoard: (() -> Unit)? = null
+    private val onNewGame: () -> Unit
 ) : Dialog(context) {
 
     private lateinit var binding: DialogGameOverBinding
@@ -52,12 +51,6 @@ class GameOverDialog(
         binding.btnGameOverNewGame.setOnClickListener {
             dismiss()
             onNewGame()
-        }
-
-        // Secondary: Review Board (Dismisses prompt so player can explore board)
-        binding.btnDismissDialog.setOnClickListener {
-            dismiss()
-            onReviewBoard?.invoke()
         }
 
         // Secondary: Copy PGN (copies with visual feedback)
