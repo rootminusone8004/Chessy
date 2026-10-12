@@ -46,6 +46,12 @@ class ChessBoardView @JvmOverloads constructor(
             invalidate()
         }
 
+    var isLastMoveBookMove: Boolean = false
+        set(value) {
+            field = value
+            invalidate()
+        }
+
     var isKingInCheck: Boolean = false
         set(value) {
             field = value
@@ -97,6 +103,12 @@ class ChessBoardView @JvmOverloads constructor(
     private val lastMoveDarkPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = ContextCompat.getColor(context, R.color.lichess_last_move_dark)
     }
+    private val bookMoveLightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.lichess_book_move_light)
+    }
+    private val bookMoveDarkPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = ContextCompat.getColor(context, R.color.lichess_book_move_dark)
+    }
     private val selectedSquareLightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = ContextCompat.getColor(context, R.color.lichess_selected_square_light)
     }
@@ -105,7 +117,7 @@ class ChessBoardView @JvmOverloads constructor(
     }
     private val checkSquarePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = ContextCompat.getColor(context, R.color.lichess_check_square)
-        alpha = 210
+        alpha = 230
     }
     private val legalMoveDotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = ContextCompat.getColor(context, R.color.lichess_legal_move_dot)
@@ -211,7 +223,11 @@ class ChessBoardView @JvmOverloads constructor(
                 val left = getSquareLeft(sq.file)
                 val top = getSquareTop(sq.rank)
                 val isLight = (sq.file + sq.rank) % 2 != 0
-                val paint = if (isLight) lastMoveLightPaint else lastMoveDarkPaint
+                val paint = if (isLastMoveBookMove) {
+                    if (isLight) bookMoveLightPaint else bookMoveDarkPaint
+                } else {
+                    if (isLight) lastMoveLightPaint else lastMoveDarkPaint
+                }
                 canvas.drawRect(left, top, left + squareSize, top + squareSize, paint)
             }
         }

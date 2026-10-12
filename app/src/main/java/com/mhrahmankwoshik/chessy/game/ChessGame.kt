@@ -53,7 +53,7 @@ class ChessGame(
     fun getLegalMoves(): List<Move> = MoveGenerator.generateLegalMoves(board)
 
     fun getLegalMovesForSquare(square: Square): List<Move> {
-        return getLegalMoves().filter { it.from == square }
+        return MoveGenerator.generateLegalMovesForSquare(board, square)
     }
 
     fun makeMove(move: Move): Boolean {

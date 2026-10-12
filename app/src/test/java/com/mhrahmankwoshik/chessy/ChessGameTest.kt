@@ -127,4 +127,55 @@ class ChessGameTest {
         assertFalse(game.isPlayerTurn())
         assertTrue(game.isEngineTurn())
     }
+
+    @Test
+    fun testHasAnyLegalMoveStartingPosition() {
+        val game = ChessGame()
+        assertTrue(MoveGenerator.hasAnyLegalMove(game.board))
+    }
+
+    @Test
+    fun testHasAnyLegalMoveCheckmateAndStalemate() {
+        val game = ChessGame()
+        // Scholar's mate
+        game.makeMove(Move.fromUci("e2e4")!!)
+        game.makeMove(Move.fromUci("e7e5")!!)
+        game.makeMove(Move.fromUci("d1h5")!!)
+        game.makeMove(Move.fromUci("b8c6")!!)
+        game.makeMove(Move.fromUci("f1c4")!!)
+        game.makeMove(Move.fromUci("g8f6")!!)
+        game.makeMove(Move.fromUci("h5f7")!!)
+
+        assertEquals(GameStatus.CHECKMATE, game.status)
+        assertFalse(MoveGenerator.hasAnyLegalMove(game.board))
+
+        // Stalemate test: 7k/5Q2/6K1/8/8/8/8/8 b - - 0 1 (Black king on h8, White Q on f7, K on g6)
+        game.board.loadFen("7k/5Q2/6K1/8/8/8/8/8 b - - 0 1")
+        assertFalse(MoveGenerator.hasAnyLegalMove(game.board))
+        assertEquals(GameStatus.STALEMATE, MoveGenerator.getGameStatus(game.board))
+    }
+
+    @Test
+    fun testGenerateLegalMovesForSquare() {
+        val game = ChessGame()
+        // e2 pawn in starting position: e3, e4
+        val e2Square = Square(4, 1)
+        val e2Moves = game.getLegalMovesForSquare(e2Square)
+        assertEquals(2, e2Moves.size)
+        assertTrue(e2Moves.any { it.to == Square(4, 2) })
+        assertTrue(e2Moves.any { it.to == Square(4, 3) })
+
+        // b1 knight: a3, c3
+        val b1Square = Square(1, 0)
+        val b1Moves = game.getLegalMovesForSquare(b1Square)
+        assertEquals(2, b1Moves.size)
+
+        // Empty square e4
+        val e4Square = Square(4, 3)
+        assertTrue(game.getLegalMovesForSquare(e4Square).isEmpty())
+
+        // Opponent piece (Black pawn on e7 while White to move)
+        val e7Square = Square(4, 6)
+        assertTrue(game.getLegalMovesForSquare(e7Square).isEmpty())
+    }
 }

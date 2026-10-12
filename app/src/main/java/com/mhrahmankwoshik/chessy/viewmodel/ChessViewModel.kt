@@ -20,7 +20,9 @@ import com.mhrahmankwoshik.chessy.game.ChessGame
 import com.mhrahmankwoshik.chessy.game.MoveGenerator
 import com.mhrahmankwoshik.chessy.util.PreferencesManager
 import com.mhrahmankwoshik.chessy.util.SoundPlayer
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ChessViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -65,6 +67,9 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
     private val _currentOpening = MutableLiveData<Opening?>()
     val currentOpening: LiveData<Opening?> = _currentOpening
 
+    private val _isLastMoveBookMove = MutableLiveData<Boolean>(false)
+    val isLastMoveBookMove: LiveData<Boolean> = _isLastMoveBookMove
+
     // Engine requirement state: if Termux engine is missing, app won't run!
     private val _engineCheckStatus = MutableLiveData<EngineCheckStatus>()
     val engineCheckStatus: LiveData<EngineCheckStatus> = _engineCheckStatus
@@ -75,6 +80,9 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
     init {
         updateGameState()
         checkTermuxEngineRequirement()
+        viewModelScope.launch(Dispatchers.IO) {
+            OpeningDatabase.getOpenings(application)
+        }
     }
 
     fun checkTermuxEngineRequirement() {
@@ -135,6 +143,7 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
 
         // Default to Stockfish's point of view: Stockfish at bottom
         _isBoardFlipped.value = (playerColor == PieceColor.WHITE)
+        _isLastMoveBookMove.value = false
         updateGameState()
 
         if (chessGame.isEngineTurn()) {
@@ -190,6 +199,7 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun handleMoveMade(move: Move) {
+        _isLastMoveBookMove.value = false
         if (move.capturedPiece != null) {
             SoundPlayer.playCapture()
         } else {
@@ -211,43 +221,46 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         engineJob?.cancel()
-
-        // 1. Check opening book first if enabled
-        if (prefs.isOpeningBookEnabled) {
-            val engineColor = if (chessGame.playerColor == PieceColor.WHITE) PieceColor.BLACK else PieceColor.WHITE
-            val history = chessGame.getMoveHistoryUci()
-            val bookResult = OpeningDatabase.findBookMove(
-                currentHistoryUci = history,
-                engineColor = engineColor,
-                selectedIds = prefs.selectedOpeningIds,
-                lockedOpening = lockedOpening,
-                context = getApplication()
-            )
-            if (bookResult != null) {
-                val (bookUci, opening) = bookResult
-                val executed = chessGame.makeEngineMove(bookUci)
-                if (executed != null) {
-                    if (executed.capturedPiece != null) {
-                        SoundPlayer.playCapture()
-                    } else {
-                        SoundPlayer.playMove()
-                    }
-                    _engineStatusText.value = "Stockfish (${opening.name})"
-                    _currentOpening.value = opening
-                    updateGameState()
-                    return
-                }
-            } else {
-                // If book moves are finished or diverged, clear lockedOpening
-                lockedOpening = null
-            }
-        }
-
-        // 2. Query Termux engine
         _isEngineThinking.value = true
         _engineStatusText.value = "Stockfish thinking…"
 
         engineJob = viewModelScope.launch {
+            // 1. Check opening book first if enabled
+            if (prefs.isOpeningBookEnabled) {
+                val engineColor = if (chessGame.playerColor == PieceColor.WHITE) PieceColor.BLACK else PieceColor.WHITE
+                val history = chessGame.getMoveHistoryUci()
+                val bookResult = withContext(Dispatchers.Default) {
+                    OpeningDatabase.findBookMove(
+                        currentHistoryUci = history,
+                        engineColor = engineColor,
+                        selectedIds = prefs.selectedOpeningIds,
+                        lockedOpening = lockedOpening,
+                        context = getApplication()
+                    )
+                }
+                if (bookResult != null) {
+                    _isEngineThinking.value = false
+                    val (bookUci, opening) = bookResult
+                    val executed = chessGame.makeEngineMove(bookUci)
+                    if (executed != null) {
+                        if (executed.capturedPiece != null) {
+                            SoundPlayer.playCapture()
+                        } else {
+                            SoundPlayer.playMove()
+                        }
+                        _engineStatusText.value = "Stockfish (${opening.name})"
+                        _currentOpening.value = opening
+                        _isLastMoveBookMove.value = true
+                        updateGameState()
+                        return@launch
+                    }
+                } else {
+                    // If book moves are finished or diverged, clear lockedOpening
+                    lockedOpening = null
+                }
+            }
+
+            // 2. Query Termux engine
             val fen = chessGame.board.toFen()
             val config = prefs.getEngineConfig()
 
@@ -265,7 +278,10 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
                 _engineStatusText.value = engineManager.activeEngineDescription
-                _currentOpening.value = OpeningDatabase.detectOpening(chessGame.getMoveHistoryUci(), getApplication())
+                _isLastMoveBookMove.value = false
+                _currentOpening.value = withContext(Dispatchers.Default) {
+                    OpeningDatabase.detectOpening(chessGame.getMoveHistoryUci(), getApplication())
+                }
                 updateGameState()
             } else {
                 // Termux engine failed to respond - do NOT use fallback, stop game and prompt user!
@@ -276,7 +292,11 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun undoMove() {
-        if (_isEngineThinking.value == true) return
+        if (_isEngineThinking.value == true) {
+            engineJob?.cancel()
+            _isEngineThinking.value = false
+        }
+        _isLastMoveBookMove.value = false
         if (chessGame.undoMove()) {
             SoundPlayer.playMove()
             _currentOpening.value = OpeningDatabase.detectOpening(chessGame.getMoveHistoryUci(), getApplication())

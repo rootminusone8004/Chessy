@@ -109,6 +109,48 @@ object MoveGenerator {
         return isSquareAttacked(board, kingSquare, color.opposite())
     }
 
+    fun hasAnyLegalMove(board: ChessBoard): Boolean {
+        val pseudoMoves = generatePseudoLegalMoves(board)
+        val color = board.activeColor
+        for (move in pseudoMoves) {
+            val clone = board.copy()
+            clone.applyMove(move)
+            if (!isKingInCheck(clone, color)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    fun generateLegalMovesForSquare(board: ChessBoard, from: Square): List<Move> {
+        val piece = board.getPiece(from) ?: return emptyList()
+        if (piece.color != board.activeColor) return emptyList()
+
+        val pseudoMoves = mutableListOf<Move>()
+        when (piece.type) {
+            PieceType.PAWN -> generatePawnMoves(board, from, piece, pseudoMoves)
+            PieceType.KNIGHT -> generateKnightMoves(board, from, pseudoMoves)
+            PieceType.BISHOP -> generateSlidingMoves(board, from, BISHOP_DIRECTIONS, pseudoMoves)
+            PieceType.ROOK -> generateSlidingMoves(board, from, ROOK_DIRECTIONS, pseudoMoves)
+            PieceType.QUEEN -> {
+                generateSlidingMoves(board, from, BISHOP_DIRECTIONS, pseudoMoves)
+                generateSlidingMoves(board, from, ROOK_DIRECTIONS, pseudoMoves)
+            }
+            PieceType.KING -> generateKingMoves(board, from, piece, pseudoMoves)
+        }
+
+        val legalMoves = mutableListOf<Move>()
+        val color = board.activeColor
+        for (move in pseudoMoves) {
+            val clone = board.copy()
+            clone.applyMove(move)
+            if (!isKingInCheck(clone, color)) {
+                legalMoves.add(move)
+            }
+        }
+        return legalMoves
+    }
+
     fun generateLegalMoves(board: ChessBoard): List<Move> {
         val pseudoMoves = generatePseudoLegalMoves(board)
         val legalMoves = mutableListOf<Move>()
@@ -311,8 +353,7 @@ object MoveGenerator {
     }
 
     fun getGameStatus(board: ChessBoard): GameStatus {
-        val legalMoves = generateLegalMoves(board)
-        if (legalMoves.isEmpty()) {
+        if (!hasAnyLegalMove(board)) {
             return if (isKingInCheck(board, board.activeColor)) {
                 GameStatus.CHECKMATE
             } else {
@@ -360,7 +401,7 @@ object MoveGenerator {
         if (move.isCastling) {
             val res = if (move.to.file == 6) "O-O" else "O-O-O"
             return if (isKingInCheck(after, after.activeColor)) {
-                if (generateLegalMoves(after).isEmpty()) "$res#" else "$res+"
+                if (!hasAnyLegalMove(after)) "$res#" else "$res+"
             } else res
         }
 
@@ -401,7 +442,7 @@ object MoveGenerator {
         }
 
         if (isKingInCheck(after, after.activeColor)) {
-            val hasMoves = generateLegalMoves(after).isNotEmpty()
+            val hasMoves = hasAnyLegalMove(after)
             sb.append(if (hasMoves) "+" else "#")
         }
 

@@ -67,8 +67,8 @@ class TermuxSocketEngine : ChessEngine {
         var socket: Socket? = null
         try {
             socket = Socket()
-            socket.connect(InetSocketAddress("127.0.0.1", config.socketPort), 2000)
-            socket.soTimeout = 6000
+            socket.connect(InetSocketAddress("127.0.0.1", config.socketPort), 2500)
+            socket.soTimeout = maxOf(8000, config.moveTimeMs + 4000)
 
             val writer = OutputStreamWriter(socket.getOutputStream(), Charsets.UTF_8)
             val reader = BufferedReader(InputStreamReader(socket.getInputStream(), Charsets.UTF_8))

@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.mhrahmankwoshik.chessy.R
@@ -20,6 +21,11 @@ import com.mhrahmankwoshik.chessy.data.model.Opening
 import com.mhrahmankwoshik.chessy.data.model.PieceColor
 import com.mhrahmankwoshik.chessy.databinding.DialogOpeningVariationEditorBinding
 import com.mhrahmankwoshik.chessy.util.PreferencesManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class OpeningVariationEditorBottomSheet(
     private val existingOpening: Opening? = null,
@@ -29,6 +35,7 @@ class OpeningVariationEditorBottomSheet(
 
     private var _binding: DialogOpeningVariationEditorBinding? = null
     private val binding get() = _binding!!
+    private var validationJob: Job? = null
 
     private val filePickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -129,40 +136,49 @@ class OpeningVariationEditorBottomSheet(
     }
 
     private fun updateValidationStatus(content: String) {
+        validationJob?.cancel()
         val trimmed = content.trim()
         if (trimmed.isEmpty()) {
-            binding.tvValidationStatus.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.textSecondary)
-            )
-            binding.tvValidationStatus.text = "Enter moves above. Line 1 is the base move line."
+            if (_binding != null) {
+                binding.tvValidationStatus.setTextColor(
+                    ContextCompat.getColor(requireContext(), R.color.textSecondary)
+                )
+                binding.tvValidationStatus.text = "Enter moves above. Line 1 is the base move line."
+            }
             return
         }
 
-        val parseResult = OpeningVariationParser.parseFileContent(content)
-        val validPathsCount = parseResult.paths.size
-        val totalMoves = parseResult.totalMovesCount
+        validationJob = viewLifecycleOwner.lifecycleScope.launch {
+            delay(150)
+            val parseResult = withContext(Dispatchers.Default) {
+                OpeningVariationParser.parseFileContent(content)
+            }
+            if (_binding == null) return@launch
+            val validPathsCount = parseResult.paths.size
+            val totalMoves = parseResult.totalMovesCount
 
-        if (parseResult.errors.isNotEmpty()) {
-            binding.tvValidationStatus.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.status_red)
-            )
-            val firstError = parseResult.errors.first()
-            binding.tvValidationStatus.text = "⚠️ $firstError ($validPathsCount valid path(s) parsed)"
-        } else if (validPathsCount > 1) {
-            binding.tvValidationStatus.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.status_green)
-            )
-            binding.tvValidationStatus.text = "✓ $validPathsCount variation paths ($totalMoves total moves). Stockfish will play these branches!"
-        } else if (validPathsCount == 1) {
-            binding.tvValidationStatus.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.lichess_last_move_light)
-            )
-            binding.tvValidationStatus.text = "✓ Base line valid ($totalMoves moves). Add indented lines below to branch variations."
-        } else {
-            binding.tvValidationStatus.setTextColor(
-                ContextCompat.getColor(requireContext(), R.color.status_amber)
-            )
-            binding.tvValidationStatus.text = "No valid move paths found in text."
+            if (parseResult.errors.isNotEmpty()) {
+                binding.tvValidationStatus.setTextColor(
+                    ContextCompat.getColor(requireContext(), R.color.status_red)
+                )
+                val firstError = parseResult.errors.first()
+                binding.tvValidationStatus.text = "⚠️ $firstError ($validPathsCount valid path(s) parsed)"
+            } else if (validPathsCount > 1) {
+                binding.tvValidationStatus.setTextColor(
+                    ContextCompat.getColor(requireContext(), R.color.status_green)
+                )
+                binding.tvValidationStatus.text = "✓ $validPathsCount variation paths ($totalMoves total moves). Stockfish will play these branches!"
+            } else if (validPathsCount == 1) {
+                binding.tvValidationStatus.setTextColor(
+                    ContextCompat.getColor(requireContext(), R.color.lichess_last_move_light)
+                )
+                binding.tvValidationStatus.text = "✓ Base line valid ($totalMoves moves). Add indented lines below to branch variations."
+            } else {
+                binding.tvValidationStatus.setTextColor(
+                    ContextCompat.getColor(requireContext(), R.color.status_amber)
+                )
+                binding.tvValidationStatus.text = "No valid move paths found in text."
+            }
         }
     }
 
@@ -260,6 +276,7 @@ class OpeningVariationEditorBottomSheet(
     }
 
     override fun onDestroyView() {
+        validationJob?.cancel()
         super.onDestroyView()
         _binding = null
     }

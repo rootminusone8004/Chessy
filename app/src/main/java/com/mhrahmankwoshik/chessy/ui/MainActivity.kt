@@ -187,6 +187,10 @@ class MainActivity : AppCompatActivity() {
             binding.chessBoardView.lastMove = move
         }
 
+        viewModel.isLastMoveBookMove.observe(this) { isBookMove ->
+            binding.chessBoardView.isLastMoveBookMove = isBookMove
+        }
+
         viewModel.isKingInCheck.observe(this) { inCheck ->
             binding.chessBoardView.isKingInCheck = inCheck
         }
@@ -420,8 +424,6 @@ class MainActivity : AppCompatActivity() {
         val isGameInProgress = (viewModel.gameStatus.value == GameStatus.ACTIVE) && (viewModel.moveRecords.value?.isNotEmpty() == true)
         ChooseSideBottomSheet(isGameInProgress = isGameInProgress) { chosenColor ->
             viewModel.startNewGame(chosenColor)
-            val sideName = if (chosenColor == PieceColor.WHITE) "White (You play first)" else "Black (Stockfish plays first)"
-            Toast.makeText(this, "Started game as $sideName", Toast.LENGTH_SHORT).show()
         }.show(supportFragmentManager, ChooseSideBottomSheet.TAG)
     }
 
