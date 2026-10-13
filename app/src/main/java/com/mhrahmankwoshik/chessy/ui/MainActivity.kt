@@ -255,11 +255,12 @@ class MainActivity : AppCompatActivity() {
             if (pending != null) {
                 val piece = viewModel.board.value?.getPiece(pending.first)
                 val color = piece?.color ?: PieceColor.WHITE
-                val dialog = PawnPromotionDialog(this, color) { chosenType ->
+                val dialog = PawnPromotionDialog(
+                    context = this,
+                    color = color,
+                    onCancel = { viewModel.cancelPromotion() }
+                ) { chosenType ->
                     viewModel.confirmPromotion(chosenType)
-                }
-                dialog.setOnCancelListener {
-                    viewModel.cancelPromotion()
                 }
                 dialog.show()
             }

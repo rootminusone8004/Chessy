@@ -4,7 +4,9 @@ All notable changes to the **Chessy** project will be documented in this file.
 
 ## [1.0.1] - 2026-10-13
 
-### Changed
+- **Pawn Promotion Dialog Fix**:
+  - Redesigned the promotion dialog with responsive proportional weights, explicit window constraints, and piece labels, ensuring all four promotion pieces (Queen, Rook, Bishop, Knight) are fully visible and clickable without clipping across all phone screen sizes and display densities.
+  - Added a Cancel button and outside-touch cancellation so promotion can be cancelled cleanly if triggered accidentally.
 - **Game Over Dialog Polish**:
   - Removed the placeholder "Review Board" button from the Game Over dialog.
   - Redesigned action layout with a primary "New Game" button and a clean, full-width outlined "Copy PGN" button with instant visual feedback.

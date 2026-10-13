@@ -46,8 +46,11 @@
     <string name="settings_socket_port">TCP Port (Default: 2222)</string>
     <string name="settings_haptic_feedback">Haptic Feedback</string>
 
+    <string name="action_cancel">Cancel</string>
+
     <!-- Promotion -->
     <string name="promotion_title">Promote Pawn</string>
+    <string name="promotion_subtitle">Select a piece to promote your pawn</string>
     <string name="piece_queen">Queen</string>
     <string name="piece_rook">Rook</string>
     <string name="piece_bishop">Bishop</string>
