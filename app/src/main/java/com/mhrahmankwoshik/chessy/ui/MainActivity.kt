@@ -100,6 +100,14 @@ class MainActivity : AppCompatActivity() {
             viewModel.undoMove()
         }
 
+        binding.btnDifferentMove.setOnClickListener {
+            viewModel.requestDifferentEngineMove()
+        }
+        androidx.appcompat.widget.TooltipCompat.setTooltipText(
+            binding.btnDifferentMove,
+            getString(R.string.tooltip_different_move)
+        )
+
         binding.btnFlipBoard.setOnClickListener {
             viewModel.flipBoard()
         }
@@ -215,11 +223,27 @@ class MainActivity : AppCompatActivity() {
         viewModel.isEngineThinking.observe(this) { thinking ->
             binding.pbEngineThinking.visibility = if (thinking) View.VISIBLE else View.GONE
             binding.btnUndo.isEnabled = !thinking
+            val canRequest = !thinking && (viewModel.canRequestDifferentMove.value ?: false)
+            binding.btnDifferentMove.isEnabled = canRequest
+            binding.btnDifferentMove.alpha = if (canRequest) 1.0f else 0.35f
             binding.btnNewGame.isEnabled = !thinking
             binding.chessBoardView.isEnabled = !thinking
             if (thinking) {
                 binding.layoutTopPlayer.setBackgroundResource(R.drawable.bg_rounded_card_active)
                 binding.layoutBottomPlayer.setBackgroundResource(R.drawable.bg_rounded_card)
+            }
+        }
+
+        viewModel.canRequestDifferentMove.observe(this) { canRequest ->
+            val enabled = canRequest && (viewModel.isEngineThinking.value != true)
+            binding.btnDifferentMove.isEnabled = enabled
+            binding.btnDifferentMove.alpha = if (enabled) 1.0f else 0.35f
+        }
+
+        viewModel.userFeedbackMessage.observe(this) { message ->
+            if (!message.isNullOrBlank()) {
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                viewModel.clearUserFeedbackMessage()
             }
         }
 

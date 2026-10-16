@@ -77,6 +77,18 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
     private val _engineMissingError = MutableLiveData<String?>()
     val engineMissingError: LiveData<String?> = _engineMissingError
 
+    private val currentTurnExcludedMoves = mutableListOf<String>()
+
+    private val _canRequestDifferentMove = MutableLiveData<Boolean>(false)
+    val canRequestDifferentMove: LiveData<Boolean> = _canRequestDifferentMove
+
+    private val _userFeedbackMessage = MutableLiveData<String?>()
+    val userFeedbackMessage: LiveData<String?> = _userFeedbackMessage
+
+    fun clearUserFeedbackMessage() {
+        _userFeedbackMessage.value = null
+    }
+
     init {
         updateGameState()
         checkTermuxEngineRequirement()
@@ -126,6 +138,7 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
         this.lockedOpening = lockedOpening
         engineJob?.cancel()
         _isEngineThinking.value = false
+        currentTurnExcludedMoves.clear()
 
         if (_engineCheckStatus.value !is EngineCheckStatus.Ready) {
             checkTermuxEngineRequirement()
@@ -199,6 +212,7 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun handleMoveMade(move: Move) {
+        currentTurnExcludedMoves.clear()
         _isLastMoveBookMove.value = false
         if (move.capturedPiece != null) {
             SoundPlayer.playCapture()
@@ -214,7 +228,10 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun triggerEngineMove() {
+    private fun triggerEngineMove(
+        candidateMoves: List<String>? = null,
+        undoneFallbackMove: Move? = null
+    ) {
         if (_engineCheckStatus.value !is EngineCheckStatus.Ready) {
             checkTermuxEngineRequirement()
             return
@@ -222,11 +239,12 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
 
         engineJob?.cancel()
         _isEngineThinking.value = true
-        _engineStatusText.value = "Stockfish thinking…"
+        _engineStatusText.value = if (!candidateMoves.isNullOrEmpty()) "Stockfish finding alternative move…" else "Stockfish thinking…"
+        updateGameState()
 
         engineJob = viewModelScope.launch {
-            // 1. Check opening book first if enabled
-            if (prefs.isOpeningBookEnabled) {
+            // 1. Check opening book first if enabled (only when not explicitly requesting an alternative candidate move)
+            if (prefs.isOpeningBookEnabled && candidateMoves.isNullOrEmpty()) {
                 val engineColor = if (chessGame.playerColor == PieceColor.WHITE) PieceColor.BLACK else PieceColor.WHITE
                 val history = chessGame.getMoveHistoryUci()
                 val bookResult = withContext(Dispatchers.Default) {
@@ -260,11 +278,11 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
 
-            // 2. Query Termux engine
+            // 2. Query Termux engine (restricted to candidateMoves if user requested alternative move)
             val fen = chessGame.board.toFen()
             val config = prefs.getEngineConfig()
 
-            val bestMoveUci = engineManager.getBestMove(fen, config)
+            val bestMoveUci = engineManager.getBestMove(fen, config, candidateMoves)
 
             _isEngineThinking.value = false
 
@@ -277,18 +295,57 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
                         SoundPlayer.playMove()
                     }
                 }
-                _engineStatusText.value = engineManager.activeEngineDescription
+                _engineStatusText.value = if (!candidateMoves.isNullOrEmpty()) {
+                    "Stockfish (Alternative Move)"
+                } else {
+                    engineManager.activeEngineDescription
+                }
                 _isLastMoveBookMove.value = false
                 _currentOpening.value = withContext(Dispatchers.Default) {
                     OpeningDatabase.detectOpening(chessGame.getMoveHistoryUci(), getApplication())
                 }
+                if (!candidateMoves.isNullOrEmpty() && executed != null) {
+                    _userFeedbackMessage.value = "Stockfish played alternative: ${executed.san}"
+                }
                 updateGameState()
             } else {
-                // Termux engine failed to respond - do NOT use fallback, stop game and prompt user!
+                if (undoneFallbackMove != null) {
+                    // Restore previous move if engine failed to provide alternative
+                    chessGame.makeEngineMove(undoneFallbackMove.uci)
+                    updateGameState()
+                }
                 _engineStatusText.value = "Stockfish Engine Error"
                 _engineMissingError.value = "Stockfish engine in Termux did not return a move. Please verify Termux is running and Stockfish is installed."
             }
         }
+    }
+
+    /**
+     * Rolls back Stockfish's last move and forces Stockfish to calculate and play a different (alternative) move.
+     */
+    fun requestDifferentEngineMove() {
+        if (_isEngineThinking.value == true) return
+        if (chessGame.status != GameStatus.ACTIVE) return
+        if (!chessGame.isPlayerTurn() || chessGame.moveHistory.isEmpty()) return
+
+        val undone = chessGame.undoEngineMoveOnly() ?: return
+        currentTurnExcludedMoves.add(undone.uci)
+
+        val legalMoves = chessGame.getLegalMoves()
+        val candidateMoves = legalMoves.map { it.uci }.filter { it !in currentTurnExcludedMoves }
+
+        if (candidateMoves.isEmpty()) {
+            // Restore undone move since no alternative legal move exists
+            chessGame.makeEngineMove(undone.uci)
+            updateGameState()
+            _userFeedbackMessage.value = "No other legal moves available for Stockfish"
+            return
+        }
+
+        SoundPlayer.playMove()
+        updateGameState()
+
+        triggerEngineMove(candidateMoves = candidateMoves, undoneFallbackMove = undone)
     }
 
     fun undoMove() {
@@ -296,6 +353,7 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
             engineJob?.cancel()
             _isEngineThinking.value = false
         }
+        currentTurnExcludedMoves.clear()
         _isLastMoveBookMove.value = false
         if (chessGame.undoMove()) {
             SoundPlayer.playMove()
@@ -328,6 +386,13 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
         val inCheck = MoveGenerator.isKingInCheck(chessGame.board, chessGame.board.activeColor)
         _isKingInCheck.value = inCheck
         _checkKingSquare.value = if (inCheck) chessGame.board.findKing(chessGame.board.activeColor) else null
+
+        _canRequestDifferentMove.value = (
+            chessGame.status == GameStatus.ACTIVE &&
+            chessGame.isPlayerTurn() &&
+            chessGame.moveHistory.isNotEmpty() &&
+            _isEngineThinking.value != true
+        )
 
         if (inCheck && chessGame.status == GameStatus.ACTIVE) {
             SoundPlayer.playCheck()

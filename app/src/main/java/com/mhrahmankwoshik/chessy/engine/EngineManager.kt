@@ -68,9 +68,13 @@ class EngineManager(
         }
     }
 
-    suspend fun getBestMove(fen: String, config: EngineConfig): String? = withContext(Dispatchers.Default) {
+    suspend fun getBestMove(
+        fen: String,
+        config: EngineConfig,
+        candidateMoves: List<String>? = null
+    ): String? = withContext(Dispatchers.Default) {
         activeEngineDescription = "Direct Termux Socket (127.0.0.1:${config.socketPort})"
-        termuxSocketEngine.getBestMove(fen, config)
+        termuxSocketEngine.getBestMove(fen, config, candidateMoves)
     }
 
     fun isTermuxAppInstalled(): Boolean {

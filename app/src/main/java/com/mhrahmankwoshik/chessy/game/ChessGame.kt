@@ -111,6 +111,22 @@ class ChessGame(
         return true
     }
 
+    /**
+     * Reverts only the last move made by the engine (1 step), returning the board to the engine's turn.
+     * Returns the undone move, or null if no engine move can be undone.
+     */
+    fun undoEngineMoveOnly(): Move? {
+        if (moveHistory.isEmpty() || boardHistory.size < 2) return null
+        if (!isPlayerTurn()) return null
+
+        val undone = moveHistory.removeAt(moveHistory.lastIndex)
+        boardHistory.removeAt(boardHistory.lastIndex)
+        board = boardHistory.last().copy()
+        lastMove = moveHistory.lastOrNull()
+        status = MoveGenerator.getGameStatus(board)
+        return undone
+    }
+
     fun resign() {
         if (status == GameStatus.ACTIVE) {
             status = GameStatus.RESIGNED

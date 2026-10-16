@@ -63,7 +63,11 @@ class TermuxSocketEngine : ChessEngine {
         }
     }
 
-    override suspend fun getBestMove(fen: String, config: EngineConfig): String? = withContext(Dispatchers.IO) {
+    override suspend fun getBestMove(
+        fen: String,
+        config: EngineConfig,
+        candidateMoves: List<String>?
+    ): String? = withContext(Dispatchers.IO) {
         var socket: Socket? = null
         try {
             socket = Socket()
@@ -77,7 +81,12 @@ class TermuxSocketEngine : ChessEngine {
             writer.write("uci\n")
             writer.write("setoption name Skill Level value ${config.skillLevel}\n")
             writer.write("position fen $fen\n")
-            writer.write("go depth ${config.depth} movetime ${config.moveTimeMs}\n")
+            val searchMovesClause = if (!candidateMoves.isNullOrEmpty()) {
+                " searchmoves ${candidateMoves.joinToString(" ")}"
+            } else {
+                ""
+            }
+            writer.write("go depth ${config.depth} movetime ${config.moveTimeMs}$searchMovesClause\n")
             writer.flush()
 
             val pattern = Pattern.compile("bestmove\\s+([a-h][1-8][a-h][1-8][qrbn]?)", Pattern.CASE_INSENSITIVE)

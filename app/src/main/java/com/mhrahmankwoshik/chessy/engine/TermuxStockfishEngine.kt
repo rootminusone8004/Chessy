@@ -141,13 +141,22 @@ class TermuxStockfishEngine(
         return diag.success
     }
 
-    override suspend fun getBestMove(fen: String, config: EngineConfig): String? {
+    override suspend fun getBestMove(
+        fen: String,
+        config: EngineConfig,
+        candidateMoves: List<String>?
+    ): String? {
         val resolutionScript = buildEngineResolutionScript(config.customEnginePath)
+        val searchMovesClause = if (!candidateMoves.isNullOrEmpty()) {
+            " searchmoves ${candidateMoves.joinToString(" ")}"
+        } else {
+            ""
+        }
         val bashCommand = buildString {
             append(resolutionScript)
             append("printf 'uci\\nsetoption name Skill Level value ${config.skillLevel}\\n")
             append("position fen $fen\\n")
-            append("go depth ${config.depth} movetime ${config.moveTimeMs}\\n' | ")
+            append("go depth ${config.depth} movetime ${config.moveTimeMs}$searchMovesClause\\n' | ")
             append("\"\$ENG\"")
         }
 

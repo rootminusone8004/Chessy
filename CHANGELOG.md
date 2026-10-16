@@ -2,6 +2,12 @@
 
 All notable changes to the **Chessy** project will be documented in this file.
 
+## [1.1.0] - 2026-10-17
+### Fixed
+- **Alternate moves**:
+  - Another button has been introduced for alternative moves
+  - Manual repititive play prevention
+
 ## [1.0.2] - 2026-10-14
 ### Fixed
 - **Pawn promtion board**:

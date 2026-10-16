@@ -24,3 +24,5 @@ fastlane/Preview.html
 
 # Generated CI release artifacts
 release_body.md
+
+.kotlin/
