@@ -10,6 +10,7 @@ import com.mhrahmankwoshik.chessy.game.MoveGenerator
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -178,4 +179,68 @@ class ChessGameTest {
         val e7Square = Square(4, 6)
         assertTrue(game.getLegalMovesForSquare(e7Square).isEmpty())
     }
+
+    @Test
+    fun testUndoEngineMoveOnlyKeepsPlayerMoveIntact() {
+        val game = ChessGame(playerColor = PieceColor.WHITE)
+        // 1. Player plays e4
+        val playerMove = Move.fromUci("e2e4")!!
+        assertTrue(game.makeMove(playerMove))
+        assertEquals(PieceColor.BLACK, game.board.activeColor)
+        val fenAfterPlayerMove = game.board.toFen()
+
+        // 2. Engine plays e5
+        val engineMove = game.makeEngineMove("e7e5")
+        assertNotNull(engineMove)
+        assertEquals(PieceColor.WHITE, game.board.activeColor)
+        assertTrue(game.isPlayerTurn())
+
+        // 3. User calls undoEngineMoveOnly()
+        val undone = game.undoEngineMoveOnly()
+        assertEquals("e7e5", undone?.uci)
+
+        // Verify that board has reverted to the position AFTER player's move e4,
+        // so it is BLACK's turn (Engine's turn), NOT White's turn!
+        assertEquals(PieceColor.BLACK, game.board.activeColor)
+        assertEquals(fenAfterPlayerMove, game.board.toFen())
+        assertEquals("e2e4", game.lastMove?.uci)
+        assertEquals(1, game.moveHistory.size)
+        assertEquals("e2e4", game.moveHistory.first().uci)
+    }
+
+    @Test
+    fun testUndoEngineMoveOnlyMultiPly() {
+        val game = ChessGame(playerColor = PieceColor.WHITE)
+        game.makeMove(Move.fromUci("e2e4")!!)
+        game.makeEngineMove("e7e5")
+        game.makeMove(Move.fromUci("g1f3")!!)
+        val fenAfterNf3 = game.board.toFen()
+        game.makeEngineMove("b8c6")
+
+        assertEquals(PieceColor.WHITE, game.board.activeColor)
+        assertTrue(game.isPlayerTurn())
+
+        val undone = game.undoEngineMoveOnly()
+        assertEquals("b8c6", undone?.uci)
+        assertEquals(PieceColor.BLACK, game.board.activeColor)
+        assertEquals(fenAfterNf3, game.board.toFen())
+        assertEquals("g1f3", game.lastMove?.uci)
+        assertEquals(3, game.moveHistory.size)
+        assertEquals(listOf("e2e4", "e7e5", "g1f3"), game.getMoveHistoryUci())
+    }
+
+    @Test
+    fun testUndoEngineMoveOnlyWhenPlayerIsBlack() {
+        val game = ChessGame(playerColor = PieceColor.BLACK)
+        // Engine plays 1. e4
+        game.makeEngineMove("e2e4")
+        assertTrue(game.isPlayerTurn())
+
+        val undone = game.undoEngineMoveOnly()
+        assertEquals("e2e4", undone?.uci)
+        assertEquals(PieceColor.WHITE, game.board.activeColor)
+        assertNull(game.lastMove)
+        assertTrue(game.moveHistory.isEmpty())
+    }
 }
+

@@ -120,8 +120,8 @@ class ChessGame(
         if (!isPlayerTurn()) return null
 
         val undone = moveHistory.removeAt(moveHistory.lastIndex)
-        boardHistory.removeAt(boardHistory.lastIndex)
-        board = boardHistory.last().copy()
+        val undoneBoard = boardHistory.removeAt(boardHistory.lastIndex)
+        board = undoneBoard.copy()
         lastMove = moveHistory.lastOrNull()
         status = MoveGenerator.getGameStatus(board)
         return undone
