@@ -82,6 +82,14 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
     private val _canRequestDifferentMove = MutableLiveData<Boolean>(false)
     val canRequestDifferentMove: LiveData<Boolean> = _canRequestDifferentMove
 
+    private val _isManualEngineMoveMode = MutableLiveData<Boolean>(false)
+    val isManualEngineMoveMode: LiveData<Boolean> = _isManualEngineMoveMode
+
+    private val _canMoveForEngine = MutableLiveData<Boolean>(false)
+    val canMoveForEngine: LiveData<Boolean> = _canMoveForEngine
+
+    private var manualEngineMoveFallback: Move? = null
+
     private val _userFeedbackMessage = MutableLiveData<String?>()
     val userFeedbackMessage: LiveData<String?> = _userFeedbackMessage
 
@@ -138,6 +146,8 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
         this.lockedOpening = lockedOpening
         engineJob?.cancel()
         _isEngineThinking.value = false
+        _isManualEngineMoveMode.value = false
+        manualEngineMoveFallback = null
         currentTurnExcludedMoves.clear()
 
         if (_engineCheckStatus.value !is EngineCheckStatus.Ready) {
@@ -166,7 +176,8 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
 
     fun getLegalMovesForSquare(square: Square): List<Move> {
         if (_engineCheckStatus.value !is EngineCheckStatus.Ready) return emptyList()
-        if (!chessGame.isPlayerTurn()) return emptyList()
+        val isManualEngine = _isManualEngineMoveMode.value == true
+        if (!chessGame.isPlayerTurn() && !isManualEngine) return emptyList()
         return chessGame.getLegalMovesForSquare(square)
     }
 
@@ -175,7 +186,8 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
             checkTermuxEngineRequirement()
             return
         }
-        if (!chessGame.isPlayerTurn()) return
+        val isManualEngine = _isManualEngineMoveMode.value == true
+        if (!chessGame.isPlayerTurn() && !isManualEngine) return
 
         val piece = chessGame.board.getPiece(from) ?: return
         val isPawn = piece.type == PieceType.PAWN
@@ -192,7 +204,12 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         val move = Move(from = from, to = to)
-        if (chessGame.makeMove(move)) {
+        if (isManualEngine) {
+            val executed = chessGame.makeEngineMove(move.uci)
+            if (executed != null) {
+                handleManualEngineMoveMade(executed)
+            }
+        } else if (chessGame.makeMove(move)) {
             handleMoveMade(move)
         }
     }
@@ -202,9 +219,38 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
         _pendingPromotion.value = null
 
         val move = Move(from = pending.first, to = pending.second, promotion = promotionType)
-        if (chessGame.makeMove(move)) {
+        val isManualEngine = _isManualEngineMoveMode.value == true
+        if (isManualEngine) {
+            val executed = chessGame.makeEngineMove(move.uci)
+            if (executed != null) {
+                handleManualEngineMoveMade(executed)
+            }
+        } else if (chessGame.makeMove(move)) {
             handleMoveMade(move)
         }
+    }
+
+    private fun handleManualEngineMoveMade(move: Move) {
+        _isManualEngineMoveMode.value = false
+        manualEngineMoveFallback = null
+        currentTurnExcludedMoves.clear()
+        _isLastMoveBookMove.value = false
+
+        if (move.capturedPiece != null) {
+            SoundPlayer.playCapture()
+        } else {
+            SoundPlayer.playMove()
+        }
+
+        _engineStatusText.value = "Stockfish (Manual: ${move.san})"
+        _userFeedbackMessage.value = "Played on behalf of Stockfish: ${move.san}"
+
+        viewModelScope.launch {
+            _currentOpening.value = withContext(Dispatchers.Default) {
+                OpeningDatabase.detectOpening(chessGame.getMoveHistoryUci(), getApplication())
+            }
+        }
+        updateGameState()
     }
 
     fun cancelPromotion() {
@@ -324,6 +370,9 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
      * Rolls back Stockfish's last move and forces Stockfish to calculate and play a different (alternative) move.
      */
     fun requestDifferentEngineMove() {
+        if (_isManualEngineMoveMode.value == true) {
+            cancelManualEngineMove()
+        }
         if (_isEngineThinking.value == true) return
         if (chessGame.status != GameStatus.ACTIVE) return
         if (!chessGame.isPlayerTurn() || chessGame.moveHistory.isEmpty()) return
@@ -348,7 +397,74 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
         triggerEngineMove(candidateMoves = candidateMoves, undoneFallbackMove = undone)
     }
 
+    /**
+     * Toggles manual move mode on behalf of Stockfish.
+     * Can be invoked when Stockfish has just played (rolls back Stockfish's move),
+     * or when Stockfish is currently thinking (cancels thinking to let user play),
+     * or anytime it is Stockfish's turn.
+     */
+    fun toggleManualEngineMove() {
+        if (_isManualEngineMoveMode.value == true) {
+            cancelManualEngineMove()
+            return
+        }
+
+        if (chessGame.status != GameStatus.ACTIVE) return
+
+        if (_isEngineThinking.value == true) {
+            engineJob?.cancel()
+            _isEngineThinking.value = false
+            manualEngineMoveFallback = null
+            _isManualEngineMoveMode.value = true
+            _engineStatusText.value = "Choose Stockfish's move…"
+            _userFeedbackMessage.value = "Tap a Stockfish piece to move on its behalf"
+            updateGameState()
+            return
+        }
+
+        if (chessGame.isEngineTurn()) {
+            manualEngineMoveFallback = null
+            _isManualEngineMoveMode.value = true
+            _engineStatusText.value = "Choose Stockfish's move…"
+            _userFeedbackMessage.value = "Tap a Stockfish piece to move on its behalf"
+            updateGameState()
+            return
+        }
+
+        if (!chessGame.isPlayerTurn() || chessGame.moveHistory.isEmpty()) return
+
+        val undone = chessGame.undoEngineMoveOnly() ?: return
+        manualEngineMoveFallback = undone
+        _isManualEngineMoveMode.value = true
+        _engineStatusText.value = "Choose Stockfish's move…"
+        _userFeedbackMessage.value = "Tap a Stockfish piece to move on its behalf"
+        SoundPlayer.playMove()
+        updateGameState()
+    }
+
+    fun cancelManualEngineMove() {
+        if (_isManualEngineMoveMode.value != true) return
+        _isManualEngineMoveMode.value = false
+        val fallback = manualEngineMoveFallback
+        manualEngineMoveFallback = null
+
+        if (fallback != null) {
+            chessGame.makeEngineMove(fallback.uci)
+            _engineStatusText.value = engineManager.activeEngineDescription
+            _userFeedbackMessage.value = "Cancelled move for Stockfish"
+            updateGameState()
+        } else if (chessGame.status == GameStatus.ACTIVE && chessGame.isEngineTurn()) {
+            triggerEngineMove()
+        } else {
+            updateGameState()
+        }
+    }
+
     fun undoMove() {
+        if (_isManualEngineMoveMode.value == true) {
+            _isManualEngineMoveMode.value = false
+            manualEngineMoveFallback = null
+        }
         if (_isEngineThinking.value == true) {
             engineJob?.cancel()
             _isEngineThinking.value = false
@@ -391,7 +507,18 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
             chessGame.status == GameStatus.ACTIVE &&
             chessGame.isPlayerTurn() &&
             chessGame.moveHistory.isNotEmpty() &&
-            _isEngineThinking.value != true
+            _isEngineThinking.value != true &&
+            _isManualEngineMoveMode.value != true
+        )
+
+        _canMoveForEngine.value = (
+            chessGame.status == GameStatus.ACTIVE &&
+            (
+                _isManualEngineMoveMode.value == true ||
+                _isEngineThinking.value == true ||
+                (chessGame.isPlayerTurn() && chessGame.moveHistory.isNotEmpty()) ||
+                chessGame.isEngineTurn()
+            )
         )
 
         if (inCheck && chessGame.status == GameStatus.ACTIVE) {

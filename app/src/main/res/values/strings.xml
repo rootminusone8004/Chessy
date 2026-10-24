@@ -18,6 +18,11 @@
     <string name="tooltip_different_move">Make Stockfish play a different move</string>
     <string name="msg_different_move">Stockfish played alternative move: %1$s</string>
     <string name="msg_no_alternative_moves">No other legal moves available for Stockfish</string>
+    <string name="action_move_for_stockfish">Move for Stockfish</string>
+    <string name="tooltip_move_for_stockfish">Make a move on behalf of Stockfish</string>
+    <string name="msg_move_for_stockfish_mode">Tap a Stockfish piece to move on its behalf</string>
+    <string name="msg_move_for_stockfish_cancelled">Cancelled move for Stockfish</string>
+    <string name="msg_move_for_stockfish_played">Played on behalf of Stockfish: %1$s</string>
     <string name="action_flip_board">Flip Board</string>
     <string name="action_settings">Settings</string>
     <string name="action_termux_setup">Termux Setup</string>

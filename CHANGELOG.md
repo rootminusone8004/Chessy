@@ -2,6 +2,10 @@
 
 All notable changes to the **Chessy** project will be documented in this file.
 
+## [1.2.0] - 2026-10-24
+### Added
+- 'Make a move on behalf of Stockfish' feature added
+
 ## [1.1.1] - 2026-10-17
 ### Fixed
 - Bug Fixed

@@ -108,6 +108,14 @@ class MainActivity : AppCompatActivity() {
             getString(R.string.tooltip_different_move)
         )
 
+        binding.btnMoveForEngine.setOnClickListener {
+            viewModel.toggleManualEngineMove()
+        }
+        androidx.appcompat.widget.TooltipCompat.setTooltipText(
+            binding.btnMoveForEngine,
+            getString(R.string.tooltip_move_for_stockfish)
+        )
+
         binding.btnFlipBoard.setOnClickListener {
             viewModel.flipBoard()
         }
@@ -238,6 +246,26 @@ class MainActivity : AppCompatActivity() {
             val enabled = canRequest && (viewModel.isEngineThinking.value != true)
             binding.btnDifferentMove.isEnabled = enabled
             binding.btnDifferentMove.alpha = if (enabled) 1.0f else 0.35f
+        }
+
+        viewModel.isManualEngineMoveMode.observe(this) { isManual ->
+            if (isManual) {
+                binding.btnMoveForEngine.setColorFilter(getColor(R.color.primaryOrange))
+                binding.layoutTopPlayer.setBackgroundResource(R.drawable.bg_rounded_card_active)
+                binding.layoutBottomPlayer.setBackgroundResource(R.drawable.bg_rounded_card)
+                binding.tvGameTurnStatus.text = getString(R.string.action_move_for_stockfish)
+                binding.tvGameTurnStatus.setTextColor(getColor(R.color.primaryOrange))
+            } else {
+                binding.btnMoveForEngine.setColorFilter(getColor(R.color.white))
+                if (viewModel.isEngineThinking.value != true) {
+                    viewModel.gameStatus.value?.let { updateGameStatusUi(it) }
+                }
+            }
+        }
+
+        viewModel.canMoveForEngine.observe(this) { canMove ->
+            binding.btnMoveForEngine.isEnabled = canMove
+            binding.btnMoveForEngine.alpha = if (canMove) 1.0f else 0.35f
         }
 
         viewModel.userFeedbackMessage.observe(this) { message ->
@@ -375,8 +403,13 @@ class MainActivity : AppCompatActivity() {
                     binding.layoutBottomPlayer.setBackgroundResource(R.drawable.bg_rounded_card_active)
                     binding.layoutTopPlayer.setBackgroundResource(R.drawable.bg_rounded_card)
                 } else {
-                    binding.tvGameTurnStatus.text = "Stockfish's Turn"
-                    binding.tvGameTurnStatus.setTextColor(getColor(R.color.textSecondary))
+                    if (viewModel.isManualEngineMoveMode.value == true) {
+                        binding.tvGameTurnStatus.text = getString(R.string.action_move_for_stockfish)
+                        binding.tvGameTurnStatus.setTextColor(getColor(R.color.primaryOrange))
+                    } else {
+                        binding.tvGameTurnStatus.text = "Stockfish's Turn"
+                        binding.tvGameTurnStatus.setTextColor(getColor(R.color.textSecondary))
+                    }
                     binding.layoutTopPlayer.setBackgroundResource(R.drawable.bg_rounded_card_active)
                     binding.layoutBottomPlayer.setBackgroundResource(R.drawable.bg_rounded_card)
                 }

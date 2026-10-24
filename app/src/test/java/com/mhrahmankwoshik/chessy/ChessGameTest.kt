@@ -242,5 +242,33 @@ class ChessGameTest {
         assertNull(game.lastMove)
         assertTrue(game.moveHistory.isEmpty())
     }
+
+    @Test
+    fun testManualEngineMoveFlow() {
+        val game = ChessGame(playerColor = PieceColor.WHITE)
+        // 1. Player plays 1. e4
+        assertTrue(game.makeMove(Move.fromUci("e2e4")!!))
+        // 2. Engine plays 1... e5
+        assertNotNull(game.makeEngineMove("e7e5"))
+        assertTrue(game.isPlayerTurn())
+        assertEquals(2, game.moveHistory.size)
+
+        // 3. User decides to revoke 1... e5 and play 1... c5 on Stockfish's behalf
+        val undone = game.undoEngineMoveOnly()
+        assertEquals("e7e5", undone?.uci)
+        assertTrue(game.isEngineTurn())
+        assertEquals(1, game.moveHistory.size)
+
+        // 4. User plays 1... c5 on behalf of Stockfish
+        val manualEngineMove = game.makeEngineMove("c7c5")
+        assertNotNull(manualEngineMove)
+        assertEquals("c7c5", manualEngineMove?.uci)
+
+        // 5. Turn returns to player, game history reflects alternative
+        assertTrue(game.isPlayerTurn())
+        assertEquals(2, game.moveHistory.size)
+        assertEquals(listOf("e2e4", "c7c5"), game.getMoveHistoryUci())
+        assertEquals("c7c5", game.lastMove?.uci)
+    }
 }
 

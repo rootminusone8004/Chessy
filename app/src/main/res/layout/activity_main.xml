@@ -318,10 +318,10 @@
 
             <ImageButton
                 android:id="@+id/btnUndo"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="3dp"
-                android:layout_marginEnd="3dp"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/action_undo"
                 android:padding="8dp"
@@ -331,10 +331,10 @@
 
             <ImageButton
                 android:id="@+id/btnDifferentMove"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="3dp"
-                android:layout_marginEnd="3dp"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/action_different_move"
                 android:padding="8dp"
@@ -343,11 +343,24 @@
                 app:tint="@color/white" />
 
             <ImageButton
+                android:id="@+id/btnMoveForEngine"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/action_move_for_stockfish"
+                android:padding="8dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_hand_move"
+                app:tint="@color/white" />
+
+            <ImageButton
                 android:id="@+id/btnFlipBoard"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/action_flip_board"
                 android:padding="8dp"
@@ -357,10 +370,10 @@
 
             <ImageButton
                 android:id="@+id/btnResign"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/action_resign"
                 android:padding="8dp"
@@ -370,10 +383,10 @@
 
             <ImageButton
                 android:id="@+id/btnSharePgn"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/action_copy_pgn"
                 android:padding="8dp"
@@ -384,22 +397,22 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnNewGame"
                 android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:layout_marginStart="6dp"
-                android:layout_marginEnd="6dp"
+                android:layout_height="38dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="2dp"
                 android:backgroundTint="@color/primaryOrange"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:minWidth="0dp"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
                 android:text="@string/action_new_game"
                 android:textColor="@color/white"
                 android:textSize="12sp"
                 app:cornerRadius="10dp"
                 app:icon="@drawable/ic_new_game"
                 app:iconPadding="4dp"
-                app:iconSize="18dp"
+                app:iconSize="16dp"
                 app:iconTint="@color/white" />
 
         </LinearLayout>
