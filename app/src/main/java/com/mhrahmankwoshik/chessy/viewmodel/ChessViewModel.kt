@@ -93,6 +93,20 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
     private val _userFeedbackMessage = MutableLiveData<String?>()
     val userFeedbackMessage: LiveData<String?> = _userFeedbackMessage
 
+    /**
+     * True once the game-over popup has been shown for the current game ending, so
+     * re-renders of the same finished status (or a new game starting) don't show it again.
+     * Reset whenever the game becomes active again (new game, undo).
+     */
+    private var gameOverDialogShown = false
+
+    /** Returns true exactly once per game ending; the caller should then show the popup. */
+    fun consumeGameOverDialog(): Boolean {
+        if (_gameStatus.value == GameStatus.ACTIVE || gameOverDialogShown) return false
+        gameOverDialogShown = true
+        return true
+    }
+
     fun clearUserFeedbackMessage() {
         _userFeedbackMessage.value = null
     }
@@ -141,9 +155,10 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
     fun startNewGame(
         playerColor: PieceColor = prefs.playerColor,
         initialOpening: Opening? = null,
-        lockedOpening: Opening? = null
+        lockedOpening: Opening? = null,
+        startFen: String? = null
     ) {
-        this.lockedOpening = lockedOpening
+        this.lockedOpening = if (startFen != null) null else lockedOpening
         engineJob?.cancel()
         _isEngineThinking.value = false
         _isManualEngineMoveMode.value = false
@@ -156,7 +171,10 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         prefs.playerColor = playerColor
-        if (initialOpening != null) {
+        if (startFen != null) {
+            chessGame.resetGame(playerColor, startFen = startFen)
+            _currentOpening.value = null
+        } else if (initialOpening != null) {
             chessGame.resetGame(playerColor, initialOpening.movesUci)
             _currentOpening.value = initialOpening
         } else {
@@ -172,6 +190,12 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
         if (chessGame.isEngineTurn()) {
             triggerEngineMove()
         }
+    }
+
+    /** Opening detection only makes sense for games that started from the standard position. */
+    private fun detectCurrentOpening(): Opening? {
+        if (chessGame.isCustomPosition) return null
+        return OpeningDatabase.detectOpening(chessGame.getMoveHistoryUci(), getApplication())
     }
 
     fun getLegalMovesForSquare(square: Square): List<Move> {
@@ -243,11 +267,10 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         _engineStatusText.value = "Stockfish (Manual: ${move.san})"
-        _userFeedbackMessage.value = "Played on behalf of Stockfish: ${move.san}"
 
         viewModelScope.launch {
             _currentOpening.value = withContext(Dispatchers.Default) {
-                OpeningDatabase.detectOpening(chessGame.getMoveHistoryUci(), getApplication())
+                detectCurrentOpening()
             }
         }
         updateGameState()
@@ -266,7 +289,7 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
             SoundPlayer.playMove()
         }
 
-        _currentOpening.value = lockedOpening ?: OpeningDatabase.detectOpening(chessGame.getMoveHistoryUci(), getApplication())
+        _currentOpening.value = lockedOpening ?: detectCurrentOpening()
         updateGameState()
 
         if (chessGame.status == GameStatus.ACTIVE && chessGame.isEngineTurn()) {
@@ -290,7 +313,7 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
 
         engineJob = viewModelScope.launch {
             // 1. Check opening book first if enabled (only when not explicitly requesting an alternative candidate move)
-            if (prefs.isOpeningBookEnabled && candidateMoves.isNullOrEmpty()) {
+            if (prefs.isOpeningBookEnabled && candidateMoves.isNullOrEmpty() && !chessGame.isCustomPosition) {
                 val engineColor = if (chessGame.playerColor == PieceColor.WHITE) PieceColor.BLACK else PieceColor.WHITE
                 val history = chessGame.getMoveHistoryUci()
                 val bookResult = withContext(Dispatchers.Default) {
@@ -348,7 +371,7 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
                 }
                 _isLastMoveBookMove.value = false
                 _currentOpening.value = withContext(Dispatchers.Default) {
-                    OpeningDatabase.detectOpening(chessGame.getMoveHistoryUci(), getApplication())
+                    detectCurrentOpening()
                 }
                 if (!candidateMoves.isNullOrEmpty() && executed != null) {
                     _userFeedbackMessage.value = "Stockfish played alternative: ${executed.san}"
@@ -417,7 +440,6 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
             manualEngineMoveFallback = null
             _isManualEngineMoveMode.value = true
             _engineStatusText.value = "Choose Stockfish's move…"
-            _userFeedbackMessage.value = "Tap a Stockfish piece to move on its behalf"
             updateGameState()
             return
         }
@@ -426,7 +448,6 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
             manualEngineMoveFallback = null
             _isManualEngineMoveMode.value = true
             _engineStatusText.value = "Choose Stockfish's move…"
-            _userFeedbackMessage.value = "Tap a Stockfish piece to move on its behalf"
             updateGameState()
             return
         }
@@ -437,7 +458,6 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
         manualEngineMoveFallback = undone
         _isManualEngineMoveMode.value = true
         _engineStatusText.value = "Choose Stockfish's move…"
-        _userFeedbackMessage.value = "Tap a Stockfish piece to move on its behalf"
         SoundPlayer.playMove()
         updateGameState()
     }
@@ -451,7 +471,6 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
         if (fallback != null) {
             chessGame.makeEngineMove(fallback.uci)
             _engineStatusText.value = engineManager.activeEngineDescription
-            _userFeedbackMessage.value = "Cancelled move for Stockfish"
             updateGameState()
         } else if (chessGame.status == GameStatus.ACTIVE && chessGame.isEngineTurn()) {
             triggerEngineMove()
@@ -473,7 +492,7 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
         _isLastMoveBookMove.value = false
         if (chessGame.undoMove()) {
             SoundPlayer.playMove()
-            _currentOpening.value = OpeningDatabase.detectOpening(chessGame.getMoveHistoryUci(), getApplication())
+            _currentOpening.value = detectCurrentOpening()
             updateGameState()
             if (chessGame.isEngineTurn()) {
                 triggerEngineMove()
@@ -495,6 +514,7 @@ class ChessViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun updateGameState() {
         _board.value = chessGame.board.copy()
+        if (chessGame.status == GameStatus.ACTIVE) gameOverDialogShown = false
         _gameStatus.value = chessGame.status
         _lastMove.value = chessGame.lastMove
         _moveRecords.value = chessGame.getMoveRecords()

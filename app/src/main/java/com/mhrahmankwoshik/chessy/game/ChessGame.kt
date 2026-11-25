@@ -21,18 +21,30 @@ class ChessGame(
     var lastMove: Move? = null
         private set
 
+    /** FEN the current game started from, or null for the standard starting position. */
+    var startingFen: String? = null
+        private set
+
+    val isCustomPosition: Boolean get() = startingFen != null
+
     init {
         resetGame(playerColor)
     }
 
-    fun resetGame(newPlayerColor: PieceColor = playerColor, initialMovesUci: List<String> = emptyList()) {
+    fun resetGame(
+        newPlayerColor: PieceColor = playerColor,
+        initialMovesUci: List<String> = emptyList(),
+        startFen: String? = null
+    ) {
         playerColor = newPlayerColor
+        startingFen = startFen?.takeIf { it != FenUtil.STARTING_FEN }
         board = ChessBoard()
+        startingFen?.let { board.loadFen(it) }
         moveHistory.clear()
         boardHistory.clear()
         boardHistory.add(board.copy())
         lastMove = null
-        status = GameStatus.ACTIVE
+        status = MoveGenerator.getGameStatus(board)
 
         for (uci in initialMovesUci) {
             val legalMoves = getLegalMoves()
@@ -135,8 +147,14 @@ class ChessGame(
 
     fun getMoveRecords(): List<MoveRecord> {
         val records = mutableListOf<MoveRecord>()
-        var moveNum = 1
+        val initialBoard = boardHistory.firstOrNull() ?: board
+        var moveNum = initialBoard.fullMoveNumber
         var i = 0
+        if (initialBoard.activeColor == PieceColor.BLACK && moveHistory.isNotEmpty()) {
+            records.add(MoveRecord(moveNumber = moveNum, whiteMove = "…", blackMove = moveHistory[0].san))
+            moveNum++
+            i = 1
+        }
         while (i < moveHistory.size) {
             val white = moveHistory[i].san
             val black = if (i + 1 < moveHistory.size) moveHistory[i + 1].san else null
@@ -160,10 +178,19 @@ class ChessGame(
             GameStatus.STALEMATE, GameStatus.DRAW_INSUFFICIENT_MATERIAL, GameStatus.DRAW_FIFTY_MOVES, GameStatus.DRAW_REPETITION -> "1/2-1/2"
             else -> "*"
         }
-        sb.append("[Result \"$result\"]\n\n")
+        sb.append("[Result \"$result\"]\n")
+        startingFen?.let {
+            sb.append("[SetUp \"1\"]\n")
+            sb.append("[FEN \"$it\"]\n")
+        }
+        sb.append("\n")
 
         val records = getMoveRecords()
         for (r in records) {
+            if (r.whiteMove == "…") {
+                sb.append("${r.moveNumber}... ${r.blackMove} ")
+                continue
+            }
             sb.append("${r.moveNumber}. ${r.whiteMove} ")
             if (r.blackMove != null) {
                 sb.append("${r.blackMove} ")

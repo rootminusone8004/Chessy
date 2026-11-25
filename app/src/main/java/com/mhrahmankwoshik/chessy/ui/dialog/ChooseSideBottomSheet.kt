@@ -11,6 +11,7 @@ import com.mhrahmankwoshik.chessy.util.PreferencesManager
 
 class ChooseSideBottomSheet(
     private val isGameInProgress: Boolean = false,
+    private val onCustomPosition: (() -> Unit)? = null,
     private val onSideChosen: (PieceColor) -> Unit
 ) : BottomSheetDialogFragment() {
 
@@ -47,16 +48,27 @@ class ChooseSideBottomSheet(
             savePortAndStart(randomColor)
         }
 
+        binding.cardCustomPosition.setOnClickListener {
+            savePort()
+            dismiss()
+            onCustomPosition?.invoke()
+        }
+        binding.cardCustomPosition.visibility = if (onCustomPosition != null) View.VISIBLE else View.GONE
+
         binding.btnCancelChooseSide.setOnClickListener {
             dismiss()
         }
     }
 
-    private fun savePortAndStart(color: PieceColor) {
+    private fun savePort() {
         val port = binding.etChooseSidePort.text?.toString()?.toIntOrNull() ?: prefs.socketPort
         if (port in 1..65535) {
             prefs.socketPort = port
         }
+    }
+
+    private fun savePortAndStart(color: PieceColor) {
+        savePort()
         onSideChosen(color)
         dismiss()
     }

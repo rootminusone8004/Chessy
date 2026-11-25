@@ -38,4 +38,6 @@
     <color name="status_green">#4CAF50</color>
     <color name="status_amber">#FFC107</color>
     <color name="status_red">#F44336</color>
+    <!-- Sampled from fastlane icon.png so the adaptive icon background matches it exactly -->
+    <color name="ic_launcher_background">#E44919</color>
 </resources>

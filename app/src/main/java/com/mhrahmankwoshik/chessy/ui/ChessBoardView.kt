@@ -80,6 +80,12 @@ class ChessBoardView @JvmOverloads constructor(
     var onSquareSelectedListener: ((Square) -> Unit)? = null
     var onMoveAttemptListener: ((Square, Square) -> Unit)? = null
 
+    /**
+     * Position-editor mode: when set, every tap on a square is reported here and the
+     * normal select/move/drag handling is bypassed.
+     */
+    var onSquareTapListener: ((Square) -> Unit)? = null
+
     // Touch & Drag state
     private var isDragging = false
     private var dragStartSquare: Square? = null
@@ -145,7 +151,8 @@ class ChessBoardView @JvmOverloads constructor(
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val width = MeasureSpec.getSize(widthMeasureSpec)
         val height = MeasureSpec.getSize(heightMeasureSpec)
-        val size = min(width, height)
+        // Inside a scroll container the height is unconstrained; size the board by width then
+        val size = if (MeasureSpec.getMode(heightMeasureSpec) == MeasureSpec.UNSPECIFIED) width else min(width, height)
         setMeasuredDimension(size, size)
     }
 
@@ -330,6 +337,17 @@ class ChessBoardView @JvmOverloads constructor(
 
         val x = event.x
         val y = event.y
+
+        onSquareTapListener?.let { tapListener ->
+            if (event.action == MotionEvent.ACTION_DOWN) {
+                // Keep a parent bottom sheet / scroll view from stealing the gesture
+                parent?.requestDisallowInterceptTouchEvent(true)
+                val square = getSquareAtCoords(x, y) ?: return false
+                performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                tapListener(square)
+            }
+            return true
+        }
 
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {

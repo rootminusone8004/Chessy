@@ -16,6 +16,7 @@ import com.mhrahmankwoshik.chessy.data.model.PieceColor
 import com.mhrahmankwoshik.chessy.databinding.ActivityMainBinding
 import com.mhrahmankwoshik.chessy.engine.EngineCheckStatus
 import com.mhrahmankwoshik.chessy.ui.dialog.ChooseSideBottomSheet
+import com.mhrahmankwoshik.chessy.ui.dialog.CustomPositionBottomSheet
 import com.mhrahmankwoshik.chessy.ui.dialog.GameOverDialog
 import com.mhrahmankwoshik.chessy.ui.dialog.GameSettingsBottomSheet
 import com.mhrahmankwoshik.chessy.ui.dialog.ManualEngineConfigBottomSheet
@@ -460,6 +461,8 @@ class MainActivity : AppCompatActivity() {
     private var activeGameOverDialog: GameOverDialog? = null
 
     private fun showGameOverDialog(message: String) {
+        // Only once per game ending: this is reached on every status re-render
+        if (!viewModel.consumeGameOverDialog()) return
         if (activeGameOverDialog?.isShowing == true) {
             activeGameOverDialog?.dismiss()
         }
@@ -477,9 +480,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun showChooseSideDialog() {
         val isGameInProgress = (viewModel.gameStatus.value == GameStatus.ACTIVE) && (viewModel.moveRecords.value?.isNotEmpty() == true)
-        ChooseSideBottomSheet(isGameInProgress = isGameInProgress) { chosenColor ->
+        ChooseSideBottomSheet(
+            isGameInProgress = isGameInProgress,
+            onCustomPosition = { showCustomPositionDialog() }
+        ) { chosenColor ->
             viewModel.startNewGame(chosenColor)
         }.show(supportFragmentManager, ChooseSideBottomSheet.TAG)
+    }
+
+    private fun showCustomPositionDialog() {
+        CustomPositionBottomSheet(
+            currentFen = viewModel.getFen(),
+            defaultColor = viewModel.prefs.playerColor
+        ) { fen, chosenColor ->
+            viewModel.startNewGame(chosenColor, startFen = fen)
+        }.show(supportFragmentManager, CustomPositionBottomSheet.TAG)
     }
 
     private fun showResignConfirmation() {

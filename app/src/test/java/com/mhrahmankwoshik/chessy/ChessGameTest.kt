@@ -270,5 +270,65 @@ class ChessGameTest {
         assertEquals(listOf("e2e4", "c7c5"), game.getMoveHistoryUci())
         assertEquals("c7c5", game.lastMove?.uci)
     }
-}
 
+    @Test
+    fun testCustomPositionStartBlackToMove() {
+        val fen = "4k3/8/8/8/8/8/4P3/4K3 b - - 0 40"
+        val game = ChessGame(playerColor = PieceColor.WHITE)
+        game.resetGame(PieceColor.WHITE, startFen = fen)
+
+        assertTrue(game.isCustomPosition)
+        assertEquals(fen, game.board.toFen())
+        assertTrue(game.isEngineTurn())
+
+        assertNotNull(game.makeEngineMove("e8d7"))
+        assertTrue(game.makeMove(Move.fromUci("e2e4")!!))
+
+        val records = game.getMoveRecords()
+        assertEquals(2, records.size)
+        assertEquals(40, records[0].moveNumber)
+        assertEquals("Kd7", records[0].blackMove)
+        assertEquals(41, records[1].moveNumber)
+        assertEquals("e4", records[1].whiteMove)
+
+        val pgn = game.toPgn()
+        assertTrue(pgn.contains("[SetUp \"1\"]"))
+        assertTrue(pgn.contains("[FEN \"$fen\"]"))
+        assertTrue(pgn.contains("40... Kd7 41. e4"))
+
+        // Undo returns to the custom start position, not the standard one
+        assertTrue(game.undoMove())
+        assertTrue(game.undoMove())
+        assertEquals(fen, game.board.toFen())
+    }
+
+    @Test
+    fun testStandardResetClearsCustomPosition() {
+        val game = ChessGame()
+        game.resetGame(PieceColor.WHITE, startFen = "4k3/8/8/8/8/8/4P3/4K3 w - - 0 1")
+        game.resetGame(PieceColor.WHITE)
+        assertFalse(game.isCustomPosition)
+        assertEquals(FenUtil.STARTING_FEN, game.board.toFen())
+    }
+
+    @Test
+    fun testFenValidation() {
+        assertNull(FenUtil.validate(FenUtil.STARTING_FEN))
+        assertNull(FenUtil.validate("4k3/8/8/8/8/8/4P3/4K3 w - - 0 1"))
+        assertNotNull(FenUtil.validate(""))
+        assertNotNull(FenUtil.validate("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP w KQkq - 0 1")) // 7 ranks
+        assertNotNull(FenUtil.validate("rnbqkbnr/pppppppp/9/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")) // bad rank width
+        assertNotNull(FenUtil.validate("8/8/8/8/8/8/4P3/4K3 w - - 0 1")) // missing black king
+        assertNotNull(FenUtil.validate("4k3/8/8/8/8/8/8/4KP2 w - - 0 1")) // pawn on first rank
+        assertNotNull(FenUtil.validate("4k3/8/8/8/8/8/8/4R1K1 w - - 0 1")) // side not to move in check
+        assertNotNull(FenUtil.validate("7k/5Q2/6K1/8/8/8/8/8 b - - 0 1")) // stalemate
+        assertNotNull(FenUtil.validate("4k3/8/8/8/8/8/8/4K3 w - - 0 1")) // insufficient material
+    }
+
+    @Test
+    fun testFenSanitizeDropsImpossibleCastlingAndEnPassant() {
+        // White king not on e1, so no white castling; no pawn on e4 for the ep target
+        val sanitized = FenUtil.sanitize("r3k2r/8/8/8/8/8/8/R4K1R b KQkq e3 0 1")
+        assertEquals("r3k2r/8/8/8/8/8/8/R4K1R b kq - 0 1", sanitized)
+    }
+}

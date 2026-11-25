@@ -2,6 +2,26 @@
 
 All notable changes to the **Chessy** project will be documented in this file.
 
+## [1.3.0] - 2026-11-26
+### Added
+- **Custom Positions**:
+  - Start a game from any position via the new **Custom Position** option in the New Game sheet.
+  - Visual board editor: pick a piece from the palette and tap squares to place it; tap it again (or use the eraser) to remove it.
+  - The editor starts with only the two kings. Kings cannot be added or removed, but can be moved by tapping the king and then the target square.
+  - Side-to-move toggle and castling checkboxes (castling options are only enabled when the king and rook are on their original squares).
+  - FEN field kept in sync with the board, with paste and copy support, plus **Clear**, **Initial**, **Current** and **Flip** shortcuts.
+  - Live validation blocks impossible positions (missing kings, pawns on the back rank, side not to move in check, or positions that are already checkmate, stalemate or a draw).
+  - Move numbering continues from the FEN, and exported PGNs include the `SetUp`/`FEN` tags. The opening book is disabled for custom positions.
+
+### Changed
+- **New chess pieces**: Replaced the piece set with a new vector piece set that stays sharp at any board size.
+- **New app icon**: Orange knight icon, with adaptive icon support for all launcher shapes.
+- **Make a move on behalf of Stockfish**: No longer shows toast messages when entering, playing or cancelling a move for Stockfish.
+- **README**: Restyled, with the release badge now updated automatically by the release workflow.
+
+### Fixed
+- **Game Over popup**: The result popup no longer reappears when starting a new game (or on screen rotation) after a game has ended.
+
 ## [1.2.0] - 2026-10-24
 ### Added
 - 'Make a move on behalf of Stockfish' feature added
