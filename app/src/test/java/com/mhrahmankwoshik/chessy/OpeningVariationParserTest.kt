@@ -144,4 +144,27 @@ class OpeningVariationParserTest {
         assertEquals(15, path4.movesUci.size)
         assertEquals("e1g1", path4.movesUci.last())
     }
+
+    @Test
+    fun testMultipleLinesFromStartPosition() {
+        // Format written by GambitStudio when lines start with different first moves
+        // (e.g. transpositions into the same position)
+        val content = """
+            1. e4 e5 2. Nf3 Nc6 3. Bc4
+               Bc5 4. c3
+               Nf6 4. Ng5
+            1. Nf3 Nc6 2. e4 e5 3. Bc4
+               Bc5 4. c3
+               Nf6 4. Ng5
+        """.trimIndent()
+
+        val result = OpeningVariationParser.parseFileContent(content)
+        assertTrue("Unexpected errors: ${result.errors}", result.errors.isEmpty())
+
+        val sanPaths = result.paths.map { it.movesSan }
+        assertTrue(listOf("e4", "e5", "Nf3", "Nc6", "Bc4", "Bc5", "c3") in sanPaths)
+        assertTrue(listOf("e4", "e5", "Nf3", "Nc6", "Bc4", "Nf6", "Ng5") in sanPaths)
+        assertTrue(listOf("Nf3", "Nc6", "e4", "e5", "Bc4", "Bc5", "c3") in sanPaths)
+        assertTrue(listOf("Nf3", "Nc6", "e4", "e5", "Bc4", "Nf6", "Ng5") in sanPaths)
+    }
 }

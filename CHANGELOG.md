@@ -2,6 +2,14 @@
 
 All notable changes to the **Chessy** project will be documented in this file.
 
+## [1.3.1] - 2026-11-27
+### Fixed
+- **Opening files with several starting lines**:
+  - Opening files can now hold more than one line starting from move 1 (e.g. `1. e4 e5 2. Nf3 Nc6` and `1. Nf3 Nc6 2. e4 e5`). Previously every extra line starting with `1.` was read as a continuation of the first line, rejected as illegal, and ignored.
+  - Opening files exported by GambitStudio that include alternative move orders (transpositions) now load in full, and Stockfish plays every recorded move order from the opening book.
+- **Opening name detection**:
+  - The current opening is now detected from every line recorded in its file, not just the first line. The opening name appears as soon as a recorded alternative move order is played, instead of only after the first book move.
+
 ## [1.3.0] - 2026-11-26
 ### Added
 - **Custom Positions**:

@@ -154,4 +154,23 @@ class OpeningDatabaseTest {
         assertTrue(game.isPlayerTurn())
         assertFalse(game.isEngineTurn())
     }
+
+    @Test
+    fun testDetectOpeningViaAlternativeMoveOrderInFile() {
+        // Scotch Gambit file also records a transposed move order: 1. Nf3 Nc6 2. e4 e5 3. d4
+        val transposedLine = listOf("g1f3", "b8c6", "e2e4", "e7e5", "d2d4", "e5d4", "f1c4")
+        val paths = mapOf(
+            userScotchGambit.id to listOf(userScotchGambit.movesUci, transposedLine),
+            userRousseauGambit.id to listOf(userRousseauGambit.movesUci)
+        )
+        val openings = listOf(userScotchGambit, userRousseauGambit)
+
+        val detected = OpeningDatabase.detectOpening(
+            listOf("g1f3", "b8c6", "e2e4"), openings
+        ) { paths.getValue(it.id) }
+        assertEquals("scotch_gambit", detected?.id)
+
+        // Base-line-only matching would not find it
+        assertNull(OpeningDatabase.detectOpening(listOf("g1f3", "b8c6", "e2e4")))
+    }
 }

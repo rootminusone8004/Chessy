@@ -234,16 +234,40 @@ object OpeningDatabase {
         return candidateMoves.random()
     }
 
-    fun detectOpening(currentHistoryUci: List<String>, context: Context? = null): Opening? {
+    /**
+     * Detects the opening being played by matching the move history against every recorded
+     * line of each opening file (not just its base line), so alternative move orders written
+     * by GambitStudio (e.g. transpositions) are recognised too.
+     */
+    fun detectOpening(currentHistoryUci: List<String>, context: Context? = null): Opening? =
+        detectOpening(currentHistoryUci, getOpenings(context)) { opening ->
+            if (context != null) {
+                OpeningFileManager.loadVariationPaths(context, opening)
+            } else {
+                listOf(opening.movesUci)
+            }
+        }
+
+    /** Picks the opening with the longest line agreeing with [currentHistoryUci]. */
+    fun detectOpening(
+        currentHistoryUci: List<String>,
+        openings: List<Opening>,
+        pathsFor: (Opening) -> List<List<String>>
+    ): Opening? {
         if (currentHistoryUci.isEmpty()) return null
 
-        return getOpenings(context)
-            .filter { opening ->
-                val len = minOf(opening.movesUci.size, currentHistoryUci.size)
-                len > 0 && opening.movesUci.take(len) == currentHistoryUci.take(len)
+        fun matchLength(path: List<String>): Int {
+            val len = minOf(path.size, currentHistoryUci.size)
+            return if (len > 0 && path.take(len) == currentHistoryUci.take(len)) len else 0
+        }
+
+        return openings
+            .map { opening ->
+                val lines = (pathsFor(opening) + listOf(opening.movesUci)).distinct()
+                opening to (lines.maxOfOrNull { matchLength(it) } ?: 0)
             }
-            .maxByOrNull { opening ->
-                minOf(opening.movesUci.size, currentHistoryUci.size)
-            }
+            .filter { (_, score) -> score > 0 }
+            .maxByOrNull { (_, score) -> score }
+            ?.first
     }
 }

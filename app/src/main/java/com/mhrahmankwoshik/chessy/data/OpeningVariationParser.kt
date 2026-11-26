@@ -128,7 +128,7 @@ object OpeningVariationParser {
                 }
 
                 // Determine parent node and starting position
-                val isExplicitFromStart = isMoveFromStart(tokens)
+                val isExplicitFromStart = isMoveFromStart(trimmed)
                 val (startBoard, baseUci, baseSan) = if (isExplicitFromStart) {
                     Triple(ChessBoard(), emptyList<String>(), emptyList<String>())
                 } else if (indent > stack.last().indent) {
@@ -228,11 +228,13 @@ object OpeningVariationParser {
         return moveTokens
     }
 
-    private fun isMoveFromStart(tokens: List<String>): Boolean {
-        if (tokens.isEmpty()) return false
-        val first = tokens.first()
-        return first.startsWith("1.") || first.startsWith("1...")
-    }
+    /**
+     * A line beginning with White's first move number ("1. e4", "1.e4") restarts from the
+     * initial position instead of continuing the line above. Checked on the raw line because
+     * the tokenizer strips move numbers. "1..." (Black's first move) still continues a line.
+     */
+    private fun isMoveFromStart(line: String): Boolean =
+        Regex("^1\\.(?!\\.)").containsMatchIn(line.trim())
 
     private data class LineParseOutcome(
         val uciMoves: List<String>,
